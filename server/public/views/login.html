@@ -1,0 +1,34 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">⚡</div>
+    <h1 class="auth-title">Welcome back</h1>
+    <p class="auth-subtitle">Sign in to your SkillBridge account</p>
+
+    <div class="info-banner" ng-if="errorMsg" style="background:#fef2f2;border-color:#fecaca;color:#b91c1c;">
+      ❌ {{ errorMsg }}
+    </div>
+
+    <form ng-submit="login()" name="loginForm" novalidate>
+      <div class="form-group" ng-class="{'has-error': loginForm.email.$dirty && loginForm.email.$invalid}">
+        <label class="form-label">Email Address</label>
+        <input class="form-control" type="email" ng-model="credentials.email" name="email" placeholder="you@example.com" required />
+        <div class="form-error" ng-show="loginForm.email.$dirty && loginForm.email.$error.required">Email is required</div>
+        <div class="form-error" ng-show="loginForm.email.$dirty && loginForm.email.$error.email">Enter a valid email</div>
+      </div>
+      <div class="form-group" ng-class="{'has-error': loginForm.password.$dirty && loginForm.password.$invalid}">
+        <label class="form-label">Password</label>
+        <input class="form-control" type="password" ng-model="credentials.password" name="password" placeholder="••••••••" required minlength="6" />
+        <div class="form-error" ng-show="loginForm.password.$dirty && loginForm.password.$error.required">Password is required</div>
+        <div class="form-error" ng-show="loginForm.password.$dirty && loginForm.password.$error.minlength">Minimum 6 characters</div>
+      </div>
+      <button class="btn btn-primary w-full btn-lg" type="submit" ng-disabled="loading">
+        <span ng-if="!loading">Sign In →</span>
+        <span ng-if="loading">Signing in...</span>
+      </button>
+    </form>
+
+    <div class="auth-switch">
+      Don't have an account? <a href="#!/register">Create one free</a>
+    </div>
+  </div>
+</div>

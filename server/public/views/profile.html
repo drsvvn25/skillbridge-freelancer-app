@@ -1,0 +1,86 @@
+<div class="page-sm">
+  <div class="loading-wrap" ng-if="loading"><div class="spinner"></div></div>
+
+  <div ng-if="!loading && profile">
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <div class="profile-avatar">{{ getInitials(profile.full_name) }}</div>
+      <div style="flex:1;">
+        <h1 style="font-size:1.6rem;font-weight:800;margin-bottom:0.25rem;">{{ profile.full_name }}</h1>
+        <div style="opacity:0.9;font-size:0.85rem;margin-bottom:0.5rem;">{{ profile.email }}</div>
+        <span class="role-badge" ng-class="profile.user_type" style="background:rgba(255,255,255,0.2);color:#fff;">{{ profile.user_type }}</span>
+        <span class="badge badge-premium" ng-if="profile.is_premium" style="margin-left:6px;">🌟 Premium</span>
+        <div class="profile-rating" ng-if="profile.user_type === 'freelancer'">
+          <span class="star">★</span>{{ profile.rating || 'New' }}
+          <span style="opacity:0.7;font-size:0.78rem;">· {{ profile.total_tasks_completed || 0 }} tasks completed</span>
+        </div>
+        <div style="margin-top:0.75rem;display:flex;gap:0.4rem;flex-wrap:wrap;" ng-if="profile.skills && profile.skills.length > 0">
+          <span class="skill-pill" ng-repeat="s in profile.skills">{{ s }}</span>
+        </div>
+      </div>
+      <button class="btn" style="background:rgba(255,255,255,0.15);color:#fff;border:1.5px solid rgba(255,255,255,0.3);" ng-click="startEdit()" ng-if="!editing">
+        ✏️ Edit
+      </button>
+    </div>
+
+    <!-- Info Cards -->
+    <div class="grid-2" ng-if="!editing">
+      <div class="card">
+        <div class="section-header">About Me</div>
+        <p style="font-size:0.9rem;color:var(--text-2);line-height:1.65;">{{ profile.bio || 'No bio added yet.' }}</p>
+      </div>
+      <div class="card">
+        <div class="section-header">Account Stats</div>
+        <div style="display:flex;flex-direction:column;gap:0.75rem;">
+          <div class="flex-between">
+            <span style="font-size:0.875rem;color:var(--text-3);">Member since</span>
+            <span style="font-weight:600;font-size:0.875rem;">{{ profile.created_at | date:'MMM yyyy' }}</span>
+          </div>
+          <div class="flex-between">
+            <span style="font-size:0.875rem;color:var(--text-3);">Account type</span>
+            <span class="role-badge" ng-class="profile.user_type">{{ profile.user_type }}</span>
+          </div>
+          <div class="flex-between" ng-if="profile.user_type === 'freelancer'">
+            <span style="font-size:0.875rem;color:var(--text-3);">Tasks Done</span>
+            <span style="font-weight:700;color:var(--brand);">{{ profile.total_tasks_completed || 0 }}</span>
+          </div>
+          <div class="flex-between" ng-if="profile.user_type === 'freelancer'">
+            <span style="font-size:0.875rem;color:var(--text-3);">Rating</span>
+            <span style="font-weight:700;color:var(--accent);">⭐ {{ profile.rating || 'No rating yet' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Form -->
+    <div class="card" ng-if="editing">
+      <h3 style="font-weight:700;margin-bottom:1.25rem;">Edit Profile</h3>
+      <div class="form-group">
+        <label class="form-label">Bio</label>
+        <textarea class="form-control" ng-model="editData.bio" rows="4" placeholder="Tell others about yourself, your expertise and experience..."></textarea>
+      </div>
+      <div class="form-group" ng-if="profile.user_type === 'freelancer'">
+        <label class="form-label">Skills</label>
+        <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;">
+          <input class="form-control" type="text" ng-model="newSkill" placeholder="e.g. React, Python, Figma" ng-keydown="$event.keyCode===13 && ($event.preventDefault(), addSkill())" />
+          <button class="btn btn-secondary" type="button" ng-click="addSkill()">+ Add</button>
+        </div>
+        <div class="skill-tags-wrap">
+          <span class="skill-tag selected" ng-repeat="s in editData.skills">
+            {{ s }} <span ng-click="removeSkill($index)" style="cursor:pointer;margin-left:4px;font-weight:700;">✕</span>
+          </span>
+        </div>
+        <div class="form-hint" ng-if="editData.skills.length === 0">Add skills to appear in skill-matched task recommendations.</div>
+      </div>
+      <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+        <button class="btn btn-ghost" ng-click="cancelEdit()">Cancel</button>
+        <button class="btn btn-primary" ng-click="saveProfile()">Save Changes ✓</button>
+      </div>
+    </div>
+
+    <div class="info-banner" ng-if="!profile.is_premium" style="margin-top:1.5rem;">
+      🌟 <strong>Upgrade to Premium</strong> — Get featured in search results and a verified badge for just $9.99/month!
+      <button class="btn btn-primary btn-sm" style="margin-left:auto;" ng-click="upgradeToPremium()">Upgrade Now</button>
+    </div>
+  </div>
+</div>

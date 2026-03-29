@@ -1,0 +1,85 @@
+<div class="page-sm">
+  <div class="page-header flex-between" style="margin-bottom:1rem;">
+    <div>
+      <h1 class="page-title">💬 Messages</h1>
+      <p class="page-subtitle" ng-if="task">{{ task.title }}</p>
+    </div>
+    <div style="display:flex;gap:1rem;align-items:center;">
+      <button class="btn btn-ghost text-red" ng-click="clearHistory()" style="color:var(--danger);" title="Clear chat history for this task">🗑️ Clear</button>
+      <a href="#!/dashboard" class="btn btn-ghost">← Back</a>
+    </div>
+  </div>
+
+  <div class="messages-wrap" ng-if="task">
+    <!-- Head -->
+    <div class="messages-head">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div
+          style="width:38px;height:38px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;">
+          {{ (isClient() ? task.freelancer_id.full_name : task.client_id.full_name) | limitTo:1 }}
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:0.9rem;">{{ isClient() ? task.freelancer_id.full_name :
+            task.client_id.full_name }}</div>
+          <div style="font-size:0.75rem;color:var(--text-3);">{{ task.category }}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <span class="badge" ng-class="{
+                'badge-open': task.status==='open',
+                'badge-progress': task.status==='in_progress',
+                'badge-completed': task.status==='completed'
+              }">{{ task.status | replace:'_':' ' }}</span>
+        <span style="font-size:0.72rem;color:var(--text-4);">Auto-refreshes every 5s</span>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="messages-body" id="messagesBody">
+      <div class="loading-wrap" ng-if="loading" style="padding:2rem;">
+        <div class="spinner"></div>
+      </div>
+
+      <div ng-if="!loading && messages.length === 0" style="text-align:center;padding:3rem;color:var(--text-3);">
+        <div style="font-size:2.5rem;margin-bottom:0.75rem;">👋</div>
+        <div style="font-weight:600;">Start the conversation</div>
+        <div style="font-size:0.83rem;margin-top:4px;">Discuss deliverables, timelines, and expectations</div>
+      </div>
+
+      <div ng-repeat="msg in messages" style="display:flex;flex-direction:column;">
+        <div class="msg-bubble" ng-class="isMine(msg) ? 'sent' : 'received'">
+          {{ msg.content }}
+          <div class="msg-time" style="text-align:right;">
+            {{ msg.created_at | date:'HH:mm' }}
+            <span ng-if="isMine(msg) && msg.is_read"> ✓✓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="messages-foot" style="flex-direction:column;align-items:stretch;gap:0.75rem;">
+      <div class="quick-keywords" style="display:flex;gap:0.5rem;overflow-x:auto;padding-bottom:2px;" ng-if="phaseKeywords && phaseKeywords.length > 0">
+        <span ng-repeat="kw in phaseKeywords" 
+              class="badge badge-open" 
+              style="cursor:pointer;white-space:nowrap;user-select:none;transition:background-color 0.2s;"
+              ng-click="populateMessage(kw)">
+          {{ kw }}
+        </span>
+      </div>
+      <div style="display:flex;gap:0.5rem;width:100%;">
+        <input id="messageInput" name="message" autocomplete="off" class="form-control" type="text" ng-model="msgContainer.text" placeholder="Type a message... (Enter to send)"
+          ng-keydown="sendOnEnter($event)" style="flex:1;" />
+        <button class="btn btn-primary" ng-click="sendMessage()" ng-disabled="!msgContainer.text || sending">
+          {{ sending ? 'Sending...' : 'Send →' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" ng-if="!task && !loading">
+    <span class="empty-icon">⚠️</span>
+    <div class="empty-title">Task not found</div>
+    <a href="#!/dashboard" class="btn btn-ghost">← Go Back</a>
+  </div>
+</div>

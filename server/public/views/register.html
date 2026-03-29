@@ -1,0 +1,61 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">⚡</div>
+    <h1 class="auth-title">Join SkillBridge</h1>
+    <p class="auth-subtitle">Connect with clients or find great work</p>
+
+    <div class="info-banner" ng-if="errorMsg" style="background:#fef2f2;border-color:#fecaca;color:#b91c1c;">
+      ❌ {{ errorMsg }}
+    </div>
+
+    <form ng-submit="register()" name="registerForm" novalidate>
+      <!-- Account Type -->
+      <div class="form-group">
+        <label class="form-label">I want to…</label>
+        <div class="radio-group">
+          <label class="radio-card" ng-class="{'selected': formData.user_type === 'client'}" ng-click="formData.user_type='client'">
+            <input type="radio" ng-model="formData.user_type" value="client" />
+            <div class="radio-card-icon">💼</div>
+            <div class="radio-card-label">Hire Talent</div>
+          </label>
+          <label class="radio-card" ng-class="{'selected': formData.user_type === 'freelancer'}" ng-click="formData.user_type='freelancer'">
+            <input type="radio" ng-model="formData.user_type" value="freelancer" />
+            <div class="radio-card-icon">🚀</div>
+            <div class="radio-card-label">Find Work</div>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" ng-class="{'has-error': registerForm.full_name.$dirty && registerForm.full_name.$invalid}">
+          <label class="form-label">Full Name *</label>
+          <input class="form-control" type="text" ng-model="formData.full_name" name="full_name" placeholder="Jane Smith" required minlength="3" />
+          <div class="form-error" ng-show="registerForm.full_name.$dirty && registerForm.full_name.$invalid">Enter your full name</div>
+        </div>
+        <div class="form-group" ng-class="{'has-error': registerForm.email.$dirty && registerForm.email.$invalid}">
+          <label class="form-label">Email Address *</label>
+          <input class="form-control" type="email" ng-model="formData.email" name="email" placeholder="jane@example.com" required />
+          <div class="form-error" ng-show="registerForm.email.$dirty && registerForm.email.$invalid">Valid email required</div>
+        </div>
+      </div>
+
+      <div class="form-group" ng-class="{'has-error': registerForm.password.$dirty && registerForm.password.$invalid}">
+        <label class="form-label">Password *</label>
+        <input class="form-control" type="password" ng-model="formData.password" name="password" placeholder="Min. 8 characters" required minlength="6" />
+        <div class="form-error" ng-show="registerForm.password.$dirty && registerForm.password.$invalid">At least 6 characters</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Bio <span style="color:var(--text-4); font-weight:400;">(optional)</span></label>
+        <textarea class="form-control" ng-model="formData.bio" placeholder="Tell clients or freelancers about yourself..." rows="3"></textarea>
+      </div>
+
+      <button class="btn btn-primary w-full btn-lg" type="submit" ng-disabled="loading || registerForm.$invalid">
+        <span ng-if="!loading">Create Free Account →</span>
+        <span ng-if="loading">Creating account...</span>
+      </button>
+    </form>
+
+    <div class="auth-switch">Already have an account? <a href="#!/login">Sign in</a></div>
+  </div>
+</div>

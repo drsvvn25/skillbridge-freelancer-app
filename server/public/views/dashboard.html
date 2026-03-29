@@ -1,0 +1,241 @@
+<div class="page">
+  <!-- Stats Row -->
+  <div class="page-header flex-between" style="flex-wrap:wrap;gap:1rem;">
+    <div>
+      <h1 class="page-title">My <span class="text-brand">Dashboard</span></h1>
+      <p class="page-subtitle" ng-if="isClient()">Manage posted tasks, review bids, and track progress</p>
+      <p class="page-subtitle" ng-if="isFreelancer()">Track your active projects, deadlines & earnings</p>
+      <div style="font-size:0.75rem;color:var(--text-3);margin-top:4px;" title="Auto-refreshes every 30s">
+        <span style="color:var(--brand);margin-right:4px;">●</span> Dashboard updated: {{ lastUpdated | date:'HH:mm:ss' }}
+      </div>
+    </div>
+    <a href="#!/post-task" class="btn btn-primary" ng-if="isClient()">+ Post New Task</a>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-value">{{ stats.total }}</div><div class="stat-label">Total Tasks</div></div>
+    <div class="stat-card blue"><div class="stat-value">{{ stats.active }}</div><div class="stat-label">In Progress</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--brand);">{{ stats.completed }}</div><div class="stat-label">Completed</div></div>
+    <div class="stat-card red" ng-if="isFreelancer()"><div class="stat-value">-${{ stats.totalPenalty }}</div><div class="stat-label">Total Penalties</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn" ng-class="{'active': activeTab==='all'}"       ng-click="activeTab='all'">📁 All</button>
+    <button class="tab-btn" ng-class="{'active': activeTab==='active'}"    ng-click="activeTab='active'">🔵 In Progress</button>
+    <button class="tab-btn" ng-class="{'active': activeTab==='open'}"      ng-click="activeTab='open'">🟡 Open</button>
+    <button class="tab-btn" ng-class="{'active': activeTab==='completed'}" ng-click="activeTab='completed'">✅ Completed</button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-wrap" ng-if="loading"><div class="spinner"></div><span>Loading dashboard...</span></div>
+
+  <!-- Empty -->
+  <div class="empty-state" ng-if="!loading && filteredTasks().length === 0">
+    <span class="empty-icon" ng-if="activeTab==='active'">🚀</span>
+    <span class="empty-icon" ng-if="activeTab==='open' || activeTab==='all'">📋</span>
+    <span class="empty-icon" ng-if="activeTab==='completed'">🏆</span>
+    <div class="empty-title" ng-if="activeTab==='active'">No active tasks right now</div>
+    <div class="empty-title" ng-if="activeTab==='open'">No open tasks</div>
+    <div class="empty-title" ng-if="activeTab==='all'">No tasks found</div>
+    <div class="empty-title" ng-if="activeTab==='completed'">No completed tasks yet</div>
+    <a href="#!/post-task" class="btn btn-primary" ng-if="isClient() && (activeTab==='open' || activeTab==='all')">Post a Task</a>
+    <a href="#!/marketplace" class="btn btn-primary" ng-if="isFreelancer() && (activeTab==='open' || activeTab==='all')">Browse Marketplace</a>
+  </div>
+
+  <!-- Task Cards -->
+  <div ng-if="!loading">
+    <div class="card" style="margin-bottom:1.25rem;"
+         id="task-{{task._id}}"
+         ng-class="{'highlighted-task': task._id === highlightedTaskId}"
+         ng-repeat="task in filteredTasks()">
+
+      <!-- Task Header -->
+      <div class="flex-between" style="margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;">
+        <div>
+          <h3 style="font-size:1.05rem;font-weight:700;">{{ task.title }}</h3>
+          <div style="font-size:0.8rem;color:var(--text-3);margin-top:3px;">
+            📁 {{ task.category }}
+            <span ng-if="isClient() && task.freelancer_id"> · Freelancer: <strong>{{ task.freelancer_id.full_name }}</strong></span>
+            <span ng-if="isFreelancer() && task.client_id"> · Client: <strong>{{ task.client_id.full_name }}</strong></span>
+          </div>
+        </div>
+        <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+          <span class="badge"
+                ng-class="{
+                  'badge-open': task.status==='open',
+                  'badge-progress': task.status==='in_progress',
+                  'badge-completed': task.status==='completed',
+                  'badge-cancelled': task.status==='cancelled'
+                }">{{ task.status | replace:'_':' ' }}</span>
+          <a href="#!/messages/{{ task._id }}" class="btn btn-outline btn-sm" ng-if="task.status==='in_progress'">💬 Chat</a>
+          <button class="btn btn-ghost btn-sm" ng-if="isClient() && task.status==='in_progress'" ng-click="cancelTask(task)">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Budget / Penalty Row -->
+      <div style="display:flex;gap:1.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
+        <div>
+          <span style="font-size:1.25rem;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;">${{ task.budget }}</span>
+          <span style="font-size:0.78rem;color:var(--text-3);margin-left:6px;">budget</span>
+        </div>
+        <div ng-if="task.commission_amount">
+          <span style="font-size:0.8rem;color:var(--text-3);">Commission: <strong>-${{ task.commission_amount }}</strong></span>
+        </div>
+        <div ng-if="task.penalty_applied > 0" class="penalty-alert" style="padding:4px 10px;margin:0;">
+          <span class="penalty-icon" style="font-size:1rem;">⚠️</span>
+          <span class="penalty-text" style="font-size:0.8rem;">Penalty: -${{ task.penalty_applied }}</span>
+        </div>
+        <div ng-if="task.status === 'in_progress'" style="margin-left:auto;">
+          <span style="font-size:0.78rem;color:var(--text-3);">Net Payout: </span>
+          <strong class="text-brand" style="font-size:1rem;">${{ task.budget - (task.commission_amount||0) - (task.penalty_applied||0) | number:2 }}</strong>
+        </div>
+      </div>
+
+      <!-- Phase Timeline -->
+      <div ng-if="task.phases && task.phases.length > 0 && task.status !== 'open'">
+        <div class="section-header">Task Phases</div>
+        <div class="phase-list">
+          <div class="phase-item"
+               ng-repeat="phase in task.phases"
+               ng-class="{
+                 'completed': phase.status==='completed',
+                 'active':    phase.status==='active',
+                 'overdue':   getMinutesLeft(phase) <= 0 && phase.status==='active'
+               }">
+            <div class="phase-dot">
+              <span ng-if="phase.status==='completed'">✓</span>
+              <span ng-if="phase.status!=='completed'">{{ $index + 1 }}</span>
+            </div>
+            <div class="phase-content">
+              <div class="phase-meta">
+                <div class="phase-name">{{ phase.name }}</div>
+                <span class="countdown"
+                      ng-if="phase.status==='active'"
+                      ng-class="countdownClass(phase)">
+                  ⏱ {{ formatCountdown(phase) }}
+                </span>
+                <span class="badge badge-completed" ng-if="phase.status==='completed'">✓ Done</span>
+                <span class="badge" ng-if="phase.status==='pending'" style="background:var(--surface-2);color:var(--text-3);">Pending</span>
+              </div>
+              <div class="phase-desc">{{ phase.description }}</div>
+              <div class="phase-deadline">Deadline: {{ phase.deadline_minutes }} min</div>
+
+              <!-- ── Penalty Alert ── -->
+              <div class="penalty-alert"
+                   ng-if="phase.status==='active' && getMinutesLeft(phase) <= 0">
+                <span class="penalty-icon">⚠️</span>
+                <span class="penalty-text">
+                  OVERDUE — Penalty: $5 per 30-minute block deducted from your payout automatically
+                </span>
+              </div>
+
+              <!-- ── Freelancer Upload ── -->
+              <div ng-if="isFreelancer() && phase.status==='active' && task.status==='in_progress'"
+                   style="margin-top:0.875rem;">
+                <div class="section-header">Submit your work:</div>
+                <form ng-submit="uploadSubmission($event, task, $index)" enctype="multipart/form-data">
+                  <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+                    <input type="file"
+                           id="file-{{ task._id }}-{{ $index }}"
+                           accept="image/*,video/*,.pdf,.doc,.docx,.zip"
+                           style="display:none;" />
+                    <button type="button" class="btn btn-secondary btn-sm"
+                            onclick="document.getElementById('file-'+this.dataset.id).click()"
+                            ng-attr-data-id="{{ task._id + '-' + $index }}">
+                      📎 Choose File
+                    </button>
+                    <input class="form-control" type="text"
+                           ng-model="submissionNote[task._id + '-' + $index]"
+                           placeholder="Note for client (optional)"
+                           style="flex:1;min-width:150px;" />
+                    <button class="btn btn-primary btn-sm" type="submit">Upload ↑</button>
+                  </div>
+                  <div ng-if="selectedFiles[task._id + '-' + $index]"
+                       style="font-size:0.75rem;color:var(--text-3);margin-top:4px;">
+                    📁 {{ selectedFiles[task._id + '-' + $index] }}
+                  </div>
+                </form>
+              </div>
+
+              <!-- ── Submissions ── -->
+              <div ng-if="submissions[task._id] && getSubmissionsForPhase(task._id, $index).length > 0"
+                   style="margin-top:0.875rem;">
+                <div class="section-header">Submissions ({{ getSubmissionsForPhase(task._id, $index).length }}):</div>
+                <div class="submission-list">
+                  <div class="submission-item" ng-repeat="sub in getSubmissionsForPhase(task._id, $index)"
+                       ng-class="{'approved': sub.is_approved}">
+                    <div class="submission-thumb">
+                      <img ng-if="sub.file_type==='image'" ng-src="{{ sub.file_url }}" alt="thumbnail" style="width:100%;height:100%;object-fit:cover;border-radius:4px;" />
+                      <span ng-if="sub.file_type==='video'">🎬</span>
+                      <span ng-if="sub.file_type!=='image' && sub.file_type!=='video'">📄</span>
+                    </div>
+                    <div style="flex:1;">
+                      <div style="font-weight:600;font-size:0.85rem;">{{ sub.original_name }}</div>
+                      <div style="font-size:0.75rem;color:var(--text-3);">{{ sub.note || 'No note' }} · {{ sub.submitted_at | date:'MMM d, HH:mm' }}</div>
+                      <a ng-href="{{ sub.file_url }}" target="_blank" class="btn btn-ghost btn-sm" style="margin-top:4px;display:inline-flex;">View File ↗</a>
+                    </div>
+                    <div>
+                      <span class="badge badge-completed" ng-if="sub.is_approved">✓ Approved</span>
+                      <button class="btn btn-primary btn-sm"
+                              ng-if="isClient() && !sub.is_approved && task.current_phase_index === $parent.$index"
+                              ng-click="approveSubmission(sub)">
+                        ✓ Approve Phase
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Client: Review Bids ── -->
+      <div ng-if="isClient() && task.status==='open' && task.applications && task.applications.length > 0"
+           style="margin-top:1.25rem;border-top:1px solid var(--border);padding-top:1.25rem;">
+        <div class="section-header">Bids Received ({{ task.applications.length }})</div>
+        <div ng-repeat="app in task.applications">
+          <div class="applicant-item">
+            <div class="applicant-avatar" ng-style="{'background': getAvatarColor(app.freelancer_id.full_name)}">
+              {{ getInitials(app.freelancer_id.full_name) }}
+            </div>
+            <div style="flex:1;">
+              <div class="applicant-name">
+                {{ app.freelancer_id.full_name }}
+                <span class="badge badge-premium" ng-if="app.freelancer_id.is_premium">🌟 Premium</span>
+              </div>
+              <div class="applicant-meta">
+                ⭐ {{ app.freelancer_id.rating || 'New' }}
+                <span ng-if="app.proposal_text"> · {{ app.proposal_text | truncate:80 }}</span>
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <div class="bid-amount" ng-if="app.bid_amount">${{ app.bid_amount }}</div>
+              <div class="bid-amount" ng-if="!app.bid_amount">${{ task.budget }}</div>
+              <button class="btn btn-primary btn-sm" ng-click="acceptApplicant(app, task)" style="margin-top:6px;">
+                Hire →
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end task card -->
+  </div><!-- end ng-if !loading -->
+
+  <!-- Activity Feed (sidebar-like section) -->
+  <div class="card" ng-if="!loading && activities.length > 0" style="margin-top:2rem;">
+    <div class="section-header">📊 Recent Activity</div>
+    <div class="activity-feed">
+      <div class="activity-item" ng-repeat="a in activities">
+        <div class="activity-dot" ng-class="a.color"></div>
+        <div>
+          <div class="activity-text">{{ a.text }}</div>
+          <div class="activity-time">{{ a.time }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

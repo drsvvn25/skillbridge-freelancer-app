@@ -1,0 +1,15 @@
+<nav class="navbar">
+  <a href="#!/marketplace" class="navbar-brand">⚡ FreelanceHub</a>
+
+  <ul class="navbar-nav">
+    <li><a href="#!/marketplace">Marketplace</a></li>
+    <li ng-if="isClient()"><a href="#!/post-task">Post Task</a></li>
+    <li><a href="#!/dashboard">Dashboard</a></li>
+  </ul>
+
+  <div class="navbar-user">
+    <span class="user-badge">{{ currentUser.user_type }}</span>
+    <span style="color: var(--text-secondary); font-size: 0.88rem;">{{ currentUser.full_name }}</span>
+    <button class="btn btn-secondary btn-sm" ng-click="logout()">Logout</button>
+  </div>
+</nav>

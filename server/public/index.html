@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="FreelancerApp">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkillBridge — Hire Top Freelancers</title>
+  <meta name="description"
+    content="SkillBridge is a mini Fiverr-like marketplace connecting skilled freelancers with clients. Post tasks, manage phases, and pay fairly." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap"
+    rel="stylesheet" />
+
+  <!-- AngularJS 1.8 CDN -->
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular-route.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.3/angular-animate.min.js"></script>
+
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body ng-controller="RootCtrl">
+
+  <!-- ── Navbar ─────────────────────────────────────── -->
+  <nav class="navbar" ng-class="{'navbar-scrolled': scrolled}">
+    <div class="nav-container">
+      <!-- Logo -->
+      <a href="#!/marketplace" class="nav-logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">Skill<span class="logo-accent">Bridge</span></span>
+      </a>
+
+      <!-- Hamburger Menu (Mobile Only) -->
+      <button class="mobile-menu-btn" ng-click="toggleMobileMenu($event)" ng-if="isLoggedIn()">
+        <span ng-if="!mobileMenuOpen">☰</span>
+        <span ng-if="mobileMenuOpen">✕</span>
+      </button>
+
+      <!-- Center Links -->
+      <div class="nav-links" ng-class="{'is-open': mobileMenuOpen}" ng-if="isLoggedIn()">
+        <a href="#!/marketplace" class="nav-link" ng-click="closeMenus()" ng-class="{'active': currentPath === '/marketplace'}">Marketplace</a>
+        <a href="#!/dashboard" class="nav-link" ng-click="closeMenus()" ng-class="{'active': currentPath === '/dashboard'}">Dashboard</a>
+        <a href="#!/post-task" class="nav-link btn-nav-post" ng-click="closeMenus()" ng-if="isClient()">+ Post Task</a>
+        <a href="#!/leaderboard" class="nav-link" ng-click="closeMenus()" ng-class="{'active': currentPath === '/leaderboard'}">🏆 Top Earners</a>
+      </div>
+
+      <!-- Right Side -->
+      <div class="nav-right">
+        <div ng-if="!isLoggedIn()" style="display:flex;gap:0.75rem;">
+          <a href="#!/login" class="btn btn-outline-nav">Log In</a>
+          <a href="#!/register" class="btn btn-primary-nav">Sign Up Free</a>
+        </div>
+        <!-- Notification Bell -->
+        <div class="nav-icon-btn" ng-if="isLoggedIn()" ng-click="toggleNotifications()" style="position:relative;">
+          🔔
+          <span class="notif-dot" ng-if="unreadCount > 0">{{ unreadCount }}</span>
+        </div>
+        <!-- User Avatar Dropdown -->
+        <div class="user-dropdown" ng-if="isLoggedIn()" ng-click="toggleUserMenu()">
+          <div class="avatar" ng-style="{'background': avatarColor}">{{ currentUser.full_name[0] }}</div>
+          <span class="user-name-nav hide-sm">{{ currentUser.full_name.split(' ')[0] }}</span>
+          <span class="dropdown-arrow">▾</span>
+          <div class="dropdown-menu" ng-show="showUserMenu">
+            <div class="dropdown-header">
+              <div class="avatar-lg" ng-style="{'background': avatarColor}">{{ currentUser.full_name[0] }}</div>
+              <div>
+                <div style="font-weight:700;">{{ currentUser.full_name }}</div>
+                <div style="font-size:0.78rem;color:#6b7280;">{{ currentUser.email }}</div>
+                <span class="role-badge" ng-class="currentUser.user_type">{{ currentUser.user_type }}</span>
+              </div>
+            </div>
+            <hr class="dropdown-divider" />
+            <a href="#!/dashboard" class="dropdown-item" ng-click="showUserMenu=false">📊 My Dashboard</a>
+            <a href="#!/marketplace" class="dropdown-item" ng-click="showUserMenu=false">🛒 Marketplace</a>
+            <a href="#!/profile" class="dropdown-item" ng-click="showUserMenu=false">👤 My Profile</a>
+            <hr class="dropdown-divider" />
+            <button class="dropdown-item danger" ng-click="logout()">🚪 Sign Out</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── Toast ───────────────────────────────────────── -->
+  <div class="toast-wrap" ng-if="toast.show">
+    <div class="toast" ng-class="{'toast-error': toast.isError, 'toast-success': !toast.isError}">
+      <span ng-if="!toast.isError">✅</span>
+      <span ng-if="toast.isError">❌</span>
+      {{ toast.message }}
+    </div>
+  </div>
+
+  <!-- ── Notifications Panel ───────────────────────── -->
+  <div class="notif-panel" ng-show="showNotifications">
+    <div class="notif-header">
+      <strong>Notifications</strong>
+      <button ng-click="showNotifications=false"
+        style="background:none;border:none;cursor:pointer;font-size:1.1rem;">✕</button>
+    </div>
+    <div class="notif-item" ng-repeat="n in notifications" ng-class="{'unread': !n.read}">
+      <span class="notif-icon">{{ n.icon }}</span>
+      <div>
+        <div class="notif-text">{{ n.message }}</div>
+        <div class="notif-time">{{ n.time }}</div>
+      </div>
+    </div>
+    <div ng-if="notifications.length === 0" style="text-align:center;padding:1.5rem;color:#9ca3af;font-size:0.85rem;">
+      No notifications yet
+    </div>
+  </div>
+
+  <!-- ── Main Content ───────────────────────────────── -->
+  <main class="main-content" ng-click="closeMenus()">
+    <div ng-view></div>
+  </main>
+
+  <!-- ── Footer ─────────────────────────────────────── -->
+  <footer class="footer" ng-if="isLoggedIn()">
+    <div class="footer-inner">
+      <div class="footer-logo">⚡ SkillBridge</div>
+      <div class="footer-tagline">Connecting talent with opportunity</div>
+      <div class="footer-links">
+        <a href="#!/marketplace">Marketplace</a>
+        <a href="#!/dashboard">Dashboard</a>
+        <a href="#!/leaderboard">Top Earners</a>
+      </div>
+      <div class="footer-copy">© 2025 SkillBridge. Built for the future of work.</div>
+    </div>
+  </footer>
+
+  <!-- ── Scripts ──────────────────────────────────────── -->
+  <script src="/app.js?v=3"></script>
+  <script src="/controllers/authCtrl.js?v=3"></script>
+  <script src="/controllers/marketplaceCtrl.js?v=3"></script>
+  <script src="/controllers/postTaskCtrl.js?v=3"></script>
+  <script src="/controllers/dashboardCtrl.js?v=3"></script>
+  <script src="/controllers/messagesCtrl.js?v=3"></script>
+  <script src="/controllers/leaderboardCtrl.js?v=3"></script>
+  <script src="/controllers/profileCtrl.js?v=3"></script>
+  <script src="/controllers/rootCtrl.js?v=3"></script>
+</body>
+
+</html>

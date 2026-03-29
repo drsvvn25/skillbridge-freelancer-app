@@ -1,0 +1,124 @@
+<div class="page-sm">
+  <div class="page-header flex-between">
+    <div>
+      <h1 class="page-title">Post a New <span class="text-brand">Task</span></h1>
+      <p class="page-subtitle">Auto-generates smart phase checklists based on category</p>
+    </div>
+    <a href="#!/marketplace" class="btn btn-ghost">← Back</a>
+  </div>
+
+  <div class="info-banner">
+    ⚡ Smart Phases: When you select a category, task sub-phases are auto-generated. Freelancers must submit proof before each phase advances!
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 380px;gap:1.5rem;align-items:start;" class="post-task-grid">
+    <!-- Form -->
+    <div class="card">
+      <div ng-if="errorMsg" class="info-banner" style="background:#fef2f2;border-color:#fecaca;color:#b91c1c;margin-bottom:1rem;">
+        ❌ {{ errorMsg }}
+      </div>
+
+      <form ng-submit="submitTask()" name="taskForm" novalidate>
+        <!-- Title -->
+        <div class="form-group" ng-class="{'has-error': taskForm.title.$dirty && taskForm.title.$invalid}">
+          <label class="form-label">Task Title *</label>
+          <input class="form-control" type="text" ng-model="taskData.title" name="title" placeholder="e.g. Build a Portfolio Website" required minlength="5" />
+          <div class="form-error" ng-show="taskForm.title.$dirty && taskForm.title.$invalid">Title is required (min 5 chars)</div>
+        </div>
+
+        <!-- Description -->
+        <div class="form-group" ng-class="{'has-error': taskForm.description.$dirty && taskForm.description.$invalid}">
+          <label class="form-label">Description *</label>
+          <textarea class="form-control" ng-model="taskData.description" name="description" placeholder="Describe the work in detail — deliverables, tech stack, style preferences..." rows="4" required minlength="20"></textarea>
+          <div class="form-error" ng-show="taskForm.description.$dirty && taskForm.description.$invalid">Description required (min 20 chars)</div>
+        </div>
+
+        <!-- Category + Urgency -->
+        <div class="form-row">
+          <div class="form-group" ng-class="{'has-error': taskForm.category.$dirty && taskForm.category.$invalid}">
+            <label class="form-label">Category *</label>
+            <select class="form-control" ng-model="taskData.category" name="category" required ng-change="onCategoryChange()">
+              <option value="">Select category</option>
+              <option ng-repeat="cat in categories" value="{{ cat }}">{{ cat }}</option>
+            </select>
+            <div class="form-error" ng-show="taskForm.category.$dirty && taskForm.category.$invalid">Select a category</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Urgency</label>
+            <select class="form-control" ng-model="taskData.urgency">
+              <option value="normal">Normal</option>
+              <option value="urgent">🔥 Urgent (+visibility)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Budget -->
+        <div class="form-group" ng-class="{'has-error': taskForm.budget.$dirty && taskForm.budget.$invalid}">
+          <label class="form-label">Budget (USD) *</label>
+          <input class="form-control" type="number" ng-model="taskData.budget" name="budget" placeholder="500" required min="5" />
+          <div class="form-error" ng-show="taskForm.budget.$dirty && taskForm.budget.$invalid">Min budget is $5</div>
+          <div class="form-hint" ng-if="taskData.budget > 0">
+            Platform fee (10%): -${{ getCommission() }} &nbsp;|&nbsp; Freelancer earns: <strong class="text-brand">${{ getFreelancerNet() }}</strong>
+          </div>
+        </div>
+
+        <!-- Required Skills -->
+        <div class="form-group">
+          <label class="form-label">Required Skills <span style="color:var(--text-4);font-weight:400;">(optional)</span></label>
+          <div style="display:flex;gap:0.5rem;">
+            <input class="form-control" type="text" ng-model="skillInput" placeholder="e.g. React, Figma, Node.js" ng-keydown="$event.keyCode===13 && ($event.preventDefault(), addSkill())" />
+            <button type="button" class="btn btn-secondary" ng-click="addSkill()">Add</button>
+          </div>
+          <div class="skill-tags-wrap mt-1">
+            <span class="skill-tag selected" ng-repeat="s in requiredSkills">
+              {{ s }} <span ng-click="removeSkill($index)" style="cursor:pointer;margin-left:3px;">✕</span>
+            </span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary w-full btn-lg" type="submit" ng-disabled="loading || taskForm.$invalid">
+          <span ng-if="!loading">🚀 Post Task</span>
+          <span ng-if="loading">Posting...</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Phase Preview Panel -->
+    <div>
+      <div class="card" ng-if="previewPhases.length > 0">
+        <div class="section-header">⚡ Auto-Generated Phases</div>
+        <p style="font-size:0.82rem;color:var(--text-3);margin-bottom:1rem;">
+          Freelancers must submit proof before each phase advances. Missed deadlines deduct from their payout.
+        </p>
+        <div class="phase-preview">
+          <div class="phase-preview-item" ng-repeat="p in previewPhases">
+            <div class="phase-num">{{ $index + 1 }}</div>
+            <div>
+              <div class="phase-preview-name">{{ p.name }}</div>
+              <div class="phase-preview-time">⏱ {{ p.deadline_minutes }} min deadline</div>
+              <div style="font-size:0.73rem;color:var(--text-4);">{{ p.description }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="penalty-alert mt-2">
+          <span class="penalty-icon">⚠️</span>
+          <span class="penalty-text" style="font-size:0.8rem;">
+            Late penalty: <strong>$5 per 30 minutes</strong> deducted from freelancer payout
+          </span>
+        </div>
+      </div>
+
+      <div class="card" ng-if="!taskData.category" style="text-align:center;padding:2.5rem;">
+        <span style="font-size:3rem;display:block;margin-bottom:0.75rem;">🗂</span>
+        <div style="font-weight:700;margin-bottom:0.35rem;">Smart Phase Preview</div>
+        <div style="font-size:0.83rem;color:var(--text-3);">Select a category to see auto-generated task phases</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @media (max-width: 768px) {
+    .post-task-grid { grid-template-columns: 1fr !important; }
+  }
+</style>
