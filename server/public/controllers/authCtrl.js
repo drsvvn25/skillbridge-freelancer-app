@@ -10,6 +10,15 @@ function($scope, $rootScope, $location, AuthService) {
   $scope.errorMsg = '';
 
   $scope.login = function() {
+    if (!$scope.credentials.email) {
+      $scope.errorMsg = 'email address not found';
+      return;
+    }
+    if (!$scope.credentials.password) {
+      $scope.errorMsg = 'password not found';
+      return;
+    }
+
     if ($scope.loginForm.$invalid) return;
     $scope.loading = true;
     $scope.errorMsg = '';
