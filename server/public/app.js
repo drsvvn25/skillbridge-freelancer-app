@@ -244,4 +244,10 @@ angular.module('FreelancerApp', ['ngRoute', 'ngAnimate'])
     $rootScope.showUserMenu = false;
     $rootScope.showNotifications = false;
   });
+
+  // Logout on page refresh or window close
+  window.addEventListener('beforeunload', function() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  });
 }]);
