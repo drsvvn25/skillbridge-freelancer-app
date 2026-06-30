@@ -48,8 +48,11 @@ app.use('/api/submissions', require('./routes/submissions'));
 app.use('/api/users', require('./routes/users'));
 
 // ─── SPA Fallback (serve index.html for all non-API routes) ──
-app.get(/^(?!\/api|\/uploads).*$/, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
+    return res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  }
+  next();
 });
 
 // ─── Error Handler ────────────────────────────────────────────

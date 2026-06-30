@@ -23,7 +23,12 @@ angular.module('FreelancerApp')
         MessageService.getForTask(taskId)
           .then(function (res) {
             $scope.messages = res.data;
-            MessageService.markRead(taskId).catch(function() {});
+            var hasUnread = res.data.some(function(msg) {
+              return !$scope.isMine(msg) && !msg.is_read;
+            });
+            if (hasUnread) {
+              MessageService.markRead(taskId).catch(function() {});
+            }
             setTimeout(function() {
               var el = document.getElementById('messagesBody');
               if (el) el.scrollTop = el.scrollHeight;
