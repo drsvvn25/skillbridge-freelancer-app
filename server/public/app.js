@@ -54,6 +54,12 @@ angular.module('FreelancerApp', ['ngRoute', 'ngAnimate'])
     register: function(data) {
       return $http.post('/api/auth/register', data);
     },
+    verifyOtp: function(email, otp) {
+      return $http.post('/api/auth/verify-otp', { email: email, otp: otp });
+    },
+    resendOtp: function(email) {
+      return $http.post('/api/auth/resend-otp', { email: email });
+    },
     logout: function() {
       localStorage.removeItem('token');
       localStorage.removeItem('user');

@@ -1,34 +1,108 @@
 <div class="auth-page">
   <div class="auth-card">
-    <div class="auth-logo">⚡</div>
-    <h1 class="auth-title">Welcome back</h1>
-    <p class="auth-subtitle">Sign in to your SkillBridge account</p>
 
-    <div class="info-banner" ng-if="errorMsg" style="background:#fef2f2;border-color:#fecaca;color:#b91c1c;">
-      ❌ {{ errorMsg }}
+    <!-- ── STEP 1: Login Form ──────────────────────────── -->
+    <div ng-if="!otpStep">
+      <div class="auth-logo">⚡</div>
+      <h1 class="auth-title">Welcome back</h1>
+      <p class="auth-subtitle">Sign in to your SkillBridge account</p>
+
+      <!-- Error -->
+      <div class="info-banner" ng-if="errorMsg" style="background:#fef2f2;border-color:#fecaca;color:#b91c1c;">
+        ❌ {{ errorMsg }}
+      </div>
+
+      <form ng-submit="login()" name="loginForm" novalidate>
+        <div class="form-group" ng-class="{'has-error': loginForm.email.$dirty && loginForm.email.$invalid}">
+          <label class="form-label">Email Address</label>
+          <input class="form-control" type="email" ng-model="credentials.email" name="email" placeholder="you@example.com" required />
+          <div class="form-error" ng-show="loginForm.email.$dirty && loginForm.email.$error.required">Email is required</div>
+          <div class="form-error" ng-show="loginForm.email.$dirty && loginForm.email.$error.email">Enter a valid email</div>
+        </div>
+        <div class="form-group" ng-class="{'has-error': loginForm.password.$dirty && loginForm.password.$invalid}">
+          <label class="form-label">Password</label>
+          <input class="form-control" type="password" ng-model="credentials.password" name="password" placeholder="••••••••" required minlength="6" />
+          <div class="form-error" ng-show="loginForm.password.$dirty && loginForm.password.$error.required">Password is required</div>
+          <div class="form-error" ng-show="loginForm.password.$dirty && loginForm.password.$error.minlength">Minimum 6 characters</div>
+        </div>
+        <button class="btn btn-primary w-full btn-lg" type="submit" ng-disabled="loading" id="login-submit-btn">
+          <span ng-if="!loading">Send OTP →</span>
+          <span ng-if="loading">Sending OTP...</span>
+        </button>
+      </form>
+
+      <div class="auth-switch">
+        Don't have an account? <a href="#!/register">Create one free</a>
+      </div>
     </div>
 
-    <form ng-submit="login()" name="loginForm" novalidate>
-      <div class="form-group" ng-class="{'has-error': loginForm.email.$dirty && loginForm.email.$invalid}">
-        <label class="form-label">Email Address</label>
-        <input class="form-control" type="email" ng-model="credentials.email" name="email" placeholder="you@example.com" required />
-        <div class="form-error" ng-show="loginForm.email.$dirty && loginForm.email.$error.required">Email is required</div>
-        <div class="form-error" ng-show="loginForm.email.$dirty && loginForm.email.$error.email">Enter a valid email</div>
+    <!-- ── STEP 2: OTP Verification ───────────────────── -->
+    <div ng-if="otpStep">
+      <div class="auth-logo" style="font-size:2.2rem;">🔐</div>
+      <h1 class="auth-title" style="font-size:1.5rem;">Verify Your Identity</h1>
+      <p class="auth-subtitle">We sent a 6-digit OTP to</p>
+      <p style="text-align:center;font-weight:700;color:var(--primary,#1dbf73);margin:-8px 0 20px;font-size:0.95rem;word-break:break-all;">{{ otpEmail }}</p>
+
+      <!-- Success message -->
+      <div class="info-banner" ng-if="successMsg" style="background:#f0fdf4;border-color:#86efac;color:#166534;margin-bottom:14px;">
+        {{ successMsg }}
       </div>
-      <div class="form-group" ng-class="{'has-error': loginForm.password.$dirty && loginForm.password.$invalid}">
-        <label class="form-label">Password</label>
-        <input class="form-control" type="password" ng-model="credentials.password" name="password" placeholder="••••••••" required minlength="6" />
-        <div class="form-error" ng-show="loginForm.password.$dirty && loginForm.password.$error.required">Password is required</div>
-        <div class="form-error" ng-show="loginForm.password.$dirty && loginForm.password.$error.minlength">Minimum 6 characters</div>
+      <!-- Error message -->
+      <div class="info-banner" ng-if="errorMsg" style="background:#fef2f2;border-color:#fecaca;color:#b91c1c;">
+        ❌ {{ errorMsg }}
       </div>
-      <button class="btn btn-primary w-full btn-lg" type="submit" ng-disabled="loading">
-        <span ng-if="!loading">Sign In →</span>
-        <span ng-if="loading">Signing in...</span>
+
+      <!-- OTP Timer -->
+      <div style="text-align:center;margin-bottom:18px;">
+        <span style="font-size:0.8rem;color:#64748b;">OTP expires in </span>
+        <span ng-if="otpTimer > 0" style="font-size:0.9rem;font-weight:700;color:#f59e0b;font-family:'Courier New',monospace;">{{ otpTimerLabel() }}</span>
+        <span ng-if="otpTimer === 0" style="font-size:0.9rem;font-weight:700;color:#ef4444;">Expired</span>
+      </div>
+
+      <!-- OTP Input -->
+      <div class="form-group">
+        <label class="form-label">Enter OTP</label>
+        <input
+          id="otp-input"
+          class="form-control"
+          type="text"
+          ng-model="otpCode"
+          placeholder="e.g. 482917"
+          maxlength="6"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          autofocus
+          style="text-align:center;font-size:1.6rem;font-weight:800;letter-spacing:10px;font-family:'Courier New',monospace;padding:14px;"
+        />
+      </div>
+
+      <button
+        class="btn btn-primary w-full btn-lg"
+        ng-click="verifyOtp()"
+        ng-disabled="loading || otpTimer === 0"
+        id="otp-verify-btn"
+        style="margin-bottom:14px;">
+        <span ng-if="!loading">✅ Verify &amp; Sign In</span>
+        <span ng-if="loading">Verifying...</span>
       </button>
-    </form>
 
-    <div class="auth-switch">
-      Don't have an account? <a href="#!/register">Create one free</a>
+      <!-- Resend + Back -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;">
+        <button
+          class="auth-link-btn"
+          ng-click="resendOtp()"
+          ng-disabled="loading"
+          style="background:none;border:none;cursor:pointer;color:#1dbf73;font-size:0.88rem;padding:0;text-decoration:underline;">
+          🔄 Resend OTP
+        </button>
+        <button
+          class="auth-link-btn"
+          ng-click="backToLogin()"
+          style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:0.88rem;padding:0;text-decoration:underline;">
+          ← Back to Login
+        </button>
+      </div>
     </div>
+
   </div>
 </div>

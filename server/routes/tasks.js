@@ -4,6 +4,7 @@ const Task = require('../models/Task');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const { getPhasesForCategory } = require('../utils/phaseTemplates');
+const { sendNewTaskEmail } = require('../utils/emailService');
 
 // ── GET /stats (dashboard summary) ───────────────────────
 router.get('/stats', auth, async (req, res) => {
@@ -70,6 +71,10 @@ router.post('/', auth, async (req, res) => {
     });
 
     await task.save();
+
+    // Send new task notification email (non-blocking)
+    sendNewTaskEmail(req.user, task).catch(() => {});
+
     res.status(201).json(task);
   } catch (error) {
     res.status(400).json({ message: error.message });

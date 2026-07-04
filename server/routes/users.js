@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const Task = require('../models/Task');
 const auth = require('../middleware/auth');
+const { sendProfileUpdateEmail } = require('../utils/emailService');
 
 // GET /api/users/me
 router.get('/me', auth, async (req, res) => {
@@ -21,6 +22,10 @@ router.patch('/me', auth, async (req, res) => {
     const updates = {};
     allowed.forEach(f => { if (req.body[f] !== undefined) updates[f] = req.body[f]; });
     const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true }).select('-password');
+
+    // Send profile update notification (non-blocking)
+    sendProfileUpdateEmail(user).catch(() => {});
+
     res.json(user);
   } catch (e) {
     res.status(400).json({ message: e.message });
