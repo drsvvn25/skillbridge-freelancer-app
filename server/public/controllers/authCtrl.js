@@ -50,7 +50,7 @@ function($scope, $rootScope, $location, $interval, AuthService) {
       $scope.errorMsg = 'Password not found';
       return;
     }
-    if ($scope.loginForm.$invalid) return;
+    if ($scope.loginForm && $scope.loginForm.$invalid) return;
 
     $scope.loading = true;
     $scope.errorMsg = '';
