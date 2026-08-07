@@ -54,6 +54,9 @@ router.post('/login', async (req, res) => {
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
+    // Log OTP to console for easy local testing
+    console.log(`🔑 [Local Development] Generated OTP for ${user.email}: ${otp}`);
+
     // Send OTP email (non-blocking)
     sendOtpEmail(user.email, user.full_name, otp).catch(() => {});
 
@@ -122,6 +125,9 @@ router.post('/resend-otp', async (req, res) => {
       { email: user.email, otp, createdAt: new Date() },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
+
+    // Log OTP to console for easy local testing
+    console.log(`🔑 [Local Development] Resent OTP for ${user.email}: ${otp}`);
 
     sendOtpEmail(user.email, user.full_name, otp).catch(() => {});
 

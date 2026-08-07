@@ -59,16 +59,56 @@ function baseTemplate(content) {
 
 // ─── Send Helper ─────────────────────────────────────────
 async function sendMail(to, subject, html) {
+  // Option A: EmailJS REST API (as per D:\odooXindia style, adapted for Node.js)
+  if (process.env.EMAILJS_SERVICE_ID && process.env.EMAILJS_TEMPLATE_ID && process.env.EMAILJS_PUBLIC_KEY) {
+    try {
+      const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          service_id: process.env.EMAILJS_SERVICE_ID,
+          template_id: process.env.EMAILJS_TEMPLATE_ID,
+          user_id: process.env.EMAILJS_PUBLIC_KEY,
+          accessToken: process.env.EMAILJS_PRIVATE_KEY || undefined,
+          template_params: {
+            to_email: to,
+            to_name: to.split('@')[0],
+            from_name: 'SkillBridge System',
+            subject: subject,
+            message: html
+          }
+        })
+      });
+
+      if (response.ok) {
+        console.log(`📧 Email sent via EmailJS to ${to} — ${subject}`);
+        return;
+      } else {
+        const errText = await response.text();
+        throw new Error(`EmailJS responded with ${response.status}: ${errText}`);
+      }
+    } catch (err) {
+      console.error(`❌ EmailJS failed to send to ${to}:`, err.message);
+    }
+  }
+
+  // Option B: Nodemailer / SMTP
   try {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.warn(`⚠️ SMTP (Gmail) credentials not configured in .env. Skipping SMTP send.`);
+      return;
+    }
     await transporter.sendMail({
       from: `"SkillBridge" <${process.env.EMAIL_USER}>`,
       to,
       subject,
       html
     });
-    console.log(`📧 Email sent to ${to} — ${subject}`);
+    console.log(`📧 Email sent via SMTP to ${to} — ${subject}`);
   } catch (err) {
-    console.error(`❌ Email failed to ${to}:`, err.message);
+    console.error(`❌ SMTP failed to send to ${to}:`, err.message);
   }
 }
 
