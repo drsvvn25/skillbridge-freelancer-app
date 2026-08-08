@@ -79,15 +79,22 @@ function($scope, $rootScope, $location, $interval, AuthService) {
 
   // ── Login — Step 2: Verify OTP ────────────────────────
   $scope.verifyOtp = function() {
-    if (!$scope.otpCode || $scope.otpCode.toString().length !== 6) {
+    console.log('=== OTP DEBUG ===');
+    console.log('$scope.otpCode raw value:', $scope.otpCode);
+    console.log('typeof otpCode:', typeof $scope.otpCode);
+    console.log('otpCode length:', ($scope.otpCode || '').toString().length);
+    var code = ($scope.otpCode || '').toString().trim();
+    console.log('code after trim:', code, '| length:', code.length);
+    if (!code || code.length !== 6) {
       $scope.errorMsg = 'Please enter the 6-digit OTP sent to your email.';
+      console.log('BLOCKED: code is empty or not 6 digits');
       return;
     }
     $scope.loading = true;
     $scope.errorMsg = '';
     $scope.successMsg = '';
 
-    AuthService.verifyOtp($scope.otpEmail, $scope.otpCode)
+    AuthService.verifyOtp($scope.otpEmail, code)
       .then(function(res) {
         if (otpInterval) $interval.cancel(otpInterval);
         AuthService.saveSession(res.data.user, res.data.token);

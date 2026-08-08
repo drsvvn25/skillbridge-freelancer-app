@@ -40,7 +40,7 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
 
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: 'Invalid credentials' });
@@ -50,7 +50,7 @@ router.post('/login', async (req, res) => {
     const otp = generateOtp();
     await Otp.findOneAndUpdate(
       { email: user.email },
-      { email: user.email, otp, createdAt: new Date() },
+      { $set: { email: user.email, otp, createdAt: new Date() } },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
@@ -122,7 +122,7 @@ router.post('/resend-otp', async (req, res) => {
     const otp = generateOtp();
     await Otp.findOneAndUpdate(
       { email: user.email },
-      { email: user.email, otp, createdAt: new Date() },
+      { $set: { otp, createdAt: new Date() } },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 

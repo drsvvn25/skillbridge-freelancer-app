@@ -9,15 +9,17 @@ angular.module('FreelancerApp', ['ngRoute', 'ngAnimate'])
   $locationProvider.hashPrefix('!');
 
   $routeProvider
-    .when('/login',       { templateUrl: '/views/login.html',       controller: 'AuthCtrl' })
-    .when('/register',    { templateUrl: '/views/register.html',     controller: 'AuthCtrl' })
-    .when('/marketplace', { templateUrl: '/views/marketplace.html',  controller: 'MarketplaceCtrl' })
-    .when('/post-task',   { templateUrl: '/views/post-task.html',    controller: 'PostTaskCtrl' })
-    .when('/dashboard',   { templateUrl: '/views/dashboard.html',    controller: 'DashboardCtrl' })
+    .when('/',            { redirectTo: '/home' })
+    .when('/home',        { templateUrl: '/views/home.html',         controller: 'HomeCtrl' })
+    .when('/login',       { templateUrl: '/views/login.html',         controller: 'AuthCtrl' })
+    .when('/register',    { templateUrl: '/views/register.html',       controller: 'AuthCtrl' })
+    .when('/marketplace', { templateUrl: '/views/marketplace.html',    controller: 'MarketplaceCtrl' })
+    .when('/post-task',   { templateUrl: '/views/post-task.html',      controller: 'PostTaskCtrl' })
+    .when('/dashboard',   { templateUrl: '/views/dashboard.html',      controller: 'DashboardCtrl' })
     .when('/messages/:taskId', { templateUrl: '/views/messages.html?v=5', controller: 'MessagesCtrl' })
-    .when('/leaderboard', { templateUrl: '/views/leaderboard.html',  controller: 'LeaderboardCtrl' })
-    .when('/profile',     { templateUrl: '/views/profile.html',      controller: 'ProfileCtrl' })
-    .otherwise({ redirectTo: '/marketplace' });
+    .when('/leaderboard', { templateUrl: '/views/leaderboard.html',    controller: 'LeaderboardCtrl' })
+    .when('/profile',     { templateUrl: '/views/profile.html',        controller: 'ProfileCtrl' })
+    .otherwise({ redirectTo: '/home' });
 }])
 
 // ─── HTTP Interceptor (attach JWT) ───────────────────────
@@ -235,12 +237,15 @@ angular.module('FreelancerApp', ['ngRoute', 'ngAnimate'])
     }, 3500);
   };
 
-  // Route guard
+  // Route guard — only block private routes for unauthenticated users
+  var privateRoutes = ['/marketplace', '/post-task', '/dashboard', '/messages/:taskId', '/leaderboard', '/profile'];
   $rootScope.$on('$routeChangeStart', function(event, next) {
-    var publicRoutes = ['/login', '/register'];
-    var path = next.$$route && next.$$route.originalPath;
-    if (!AuthService.isLoggedIn() && publicRoutes.indexOf(path) === -1) {
-      $location.path('/login');
+    var path = next && next.$$route && next.$$route.originalPath;
+    if (!path) return; // ignore null/redirect routes
+    var isPrivate = privateRoutes.indexOf(path) !== -1;
+    if (isPrivate && !AuthService.isLoggedIn()) {
+      event.preventDefault();
+      $location.path('/home');
     }
   });
 
@@ -251,9 +256,4 @@ angular.module('FreelancerApp', ['ngRoute', 'ngAnimate'])
     $rootScope.showNotifications = false;
   });
 
-  // Logout on page refresh or window close
-  window.addEventListener('beforeunload', function() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-  });
 }]);

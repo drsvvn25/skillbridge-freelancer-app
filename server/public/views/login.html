@@ -2,7 +2,7 @@
   <div class="auth-card">
 
     <!-- ── STEP 1: Login Form ──────────────────────────── -->
-    <div ng-if="!otpStep">
+    <div ng-show="!otpStep">
       <div class="auth-logo">⚡</div>
       <h1 class="auth-title">Welcome back</h1>
       <p class="auth-subtitle">Sign in to your SkillBridge account</p>
@@ -37,7 +37,7 @@
     </div>
 
     <!-- ── STEP 2: OTP Verification ───────────────────── -->
-    <div ng-if="otpStep">
+    <div ng-show="otpStep">
       <div class="auth-logo" style="font-size:2.2rem;">🔐</div>
       <h1 class="auth-title" style="font-size:1.5rem;">Verify Your Identity</h1>
       <p class="auth-subtitle">We sent a 6-digit OTP to</p>
@@ -67,10 +67,10 @@
           class="form-control"
           type="text"
           ng-model="otpCode"
+          ng-trim="false"
           placeholder="e.g. 482917"
           maxlength="6"
           inputmode="numeric"
-          pattern="[0-9]*"
           autofocus
           style="text-align:center;font-size:1.6rem;font-weight:800;letter-spacing:10px;font-family:'Courier New',monospace;padding:14px;"
         />

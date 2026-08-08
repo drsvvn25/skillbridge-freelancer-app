@@ -47,6 +47,16 @@ app.use('/api/phases', require('./routes/phases'));
 app.use('/api/submissions', require('./routes/submissions'));
 app.use('/api/users', require('./routes/users'));
 
+// ─── Angular Route Redirects ──────────────────────────────────
+// When user types /home, /login etc directly in the browser bar,
+// redirect them to the correct AngularJS hash URL at the root
+const angularRoutes = ['home', 'login', 'register', 'marketplace', 'dashboard', 'post-task', 'leaderboard', 'profile'];
+angularRoutes.forEach(function(route) {
+  app.get('/' + route, function(req, res) {
+    res.redirect('/#!/' + route);
+  });
+});
+
 // ─── SPA Fallback (serve index.html for all non-API routes) ──
 app.use((req, res, next) => {
   if (req.method === 'GET' && !req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {

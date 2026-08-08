@@ -1,0 +1,192 @@
+<div class="home-page">
+
+  <!-- ── HERO ──────────────────────────────────────────────── -->
+  <section class="hero-section">
+    <div class="hero-bg-shapes">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+    </div>
+    <div class="hero-container">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        🚀 The Future of Freelancing is Here
+      </div>
+      <h1 class="hero-title">
+        Connect Talent<br>
+        <span class="text-gradient">With Opportunity</span>
+      </h1>
+      <p class="hero-subtitle">
+        SkillBridge is your premium marketplace to find expert freelancers,
+        post projects, and get work done — faster, smarter, and transparently.
+      </p>
+      <div class="hero-actions">
+        <a href="#!/login" class="btn-hero-primary">
+          <span>Get Started Free</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a href="#!/register" class="btn-hero-secondary">
+          Create an Account
+        </a>
+      </div>
+      <div class="hero-trust">
+        <div class="trust-item">
+          <span class="trust-num">{{ stats.totalTasks || '150' }}+</span>
+          <span class="trust-label">Tasks Posted</span>
+        </div>
+        <div class="trust-divider"></div>
+        <div class="trust-item">
+          <span class="trust-num">{{ stats.totalFreelancers || '80' }}+</span>
+          <span class="trust-label">Freelancers</span>
+        </div>
+        <div class="trust-divider"></div>
+        <div class="trust-item">
+          <span class="trust-num">98%</span>
+          <span class="trust-label">Satisfaction</span>
+        </div>
+      </div>
+    </div>
+    <!-- Floating cards -->
+    <div class="hero-floating">
+      <div class="float-card float-card-1">
+        <div class="float-icon">✅</div>
+        <div>
+          <div class="float-title">Task Completed</div>
+          <div class="float-sub">UI Design — $240</div>
+        </div>
+      </div>
+      <div class="float-card float-card-2">
+        <div class="float-icon">⭐</div>
+        <div>
+          <div class="float-title">5.0 Rating</div>
+          <div class="float-sub">Excellent work!</div>
+        </div>
+      </div>
+      <div class="float-card float-card-3">
+        <div class="float-icon">🔔</div>
+        <div>
+          <div class="float-title">New Application</div>
+          <div class="float-sub">3 proposals received</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── HOW IT WORKS ───────────────────────────────────────── -->
+  <section class="section-how">
+    <div class="section-container">
+      <div class="section-label">How It Works</div>
+      <h2 class="section-title">Simple. Fast. Reliable.</h2>
+      <p class="section-subtitle">Get your project done in 3 easy steps</p>
+
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">01</div>
+          <div class="step-icon">📋</div>
+          <h3 class="step-title">Post a Task</h3>
+          <p class="step-desc">Describe your project, set your budget, and choose a category. It takes less than 2 minutes.</p>
+        </div>
+        <div class="steps-arrow">→</div>
+        <div class="step-card">
+          <div class="step-number">02</div>
+          <div class="step-icon">🤝</div>
+          <h3 class="step-title">Review Proposals</h3>
+          <p class="step-desc">Receive bids from skilled freelancers, review their profiles and choose the best fit.</p>
+        </div>
+        <div class="steps-arrow">→</div>
+        <div class="step-card">
+          <div class="step-number">03</div>
+          <div class="step-icon">🚀</div>
+          <h3 class="step-title">Get It Done</h3>
+          <p class="step-desc">Track progress through phases, collaborate via messages, and approve deliverables.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CATEGORIES ─────────────────────────────────────────── -->
+  <section class="section-categories">
+    <div class="section-container">
+      <div class="section-label">Explore</div>
+      <h2 class="section-title">Popular Categories</h2>
+      <p class="section-subtitle">Find experts across every skill area</p>
+
+      <div class="categories-grid">
+        <div class="cat-card" ng-repeat="cat in categories" ng-click="goToMarketplace()">
+          <div class="cat-icon">{{ cat.icon }}</div>
+          <div class="cat-name">{{ cat.name }}</div>
+          <div class="cat-count">{{ cat.count }} tasks</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FEATURES ───────────────────────────────────────────── -->
+  <section class="section-features">
+    <div class="section-container">
+      <div class="section-label">Why SkillBridge</div>
+      <h2 class="section-title">Built for the Modern Workforce</h2>
+      <p class="section-subtitle">Everything you need to hire, collaborate and deliver</p>
+
+      <div class="features-grid">
+        <div class="feature-card feature-card--large">
+          <div class="feature-icon-wrap" style="background:linear-gradient(135deg,#1dbf73,#3b82f6);">🔐</div>
+          <h3 class="feature-title">Secure OTP Login</h3>
+          <p class="feature-desc">Two-factor authentication via email OTP keeps your account protected at every login.</p>
+          <div class="feature-tag">Security First</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background:linear-gradient(135deg,#8b5cf6,#3b82f6);">📊</div>
+          <h3 class="feature-title">Phase Tracking</h3>
+          <p class="feature-desc">Break projects into milestones and track progress step by step.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background:linear-gradient(135deg,#f59e0b,#ef4444);">💬</div>
+          <h3 class="feature-title">Live Messaging</h3>
+          <p class="feature-desc">Real-time chat between clients and freelancers on every task.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background:linear-gradient(135deg,#10b981,#06b6d4);">🏆</div>
+          <h3 class="feature-title">Leaderboard</h3>
+          <p class="feature-desc">Top-rated freelancers get visibility on the public leaderboard.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-wrap" style="background:linear-gradient(135deg,#ef4444,#8b5cf6);">⚡</div>
+          <h3 class="feature-title">Instant Proposals</h3>
+          <p class="feature-desc">Post a task and receive competitive proposals within minutes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA ────────────────────────────────────────────────── -->
+  <section class="section-cta">
+    <div class="cta-card">
+      <div class="cta-glow"></div>
+      <h2 class="cta-title">Ready to Get Started?</h2>
+      <p class="cta-sub">Join hundreds of clients and freelancers already on SkillBridge.</p>
+      <div class="cta-actions">
+        <a href="#!/login" class="btn-cta-primary">
+          Login to Your Account
+        </a>
+        <a href="#!/register" class="btn-cta-secondary">
+          Register as Freelancer
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ─────────────────────────────────────────────── -->
+  <footer class="home-footer">
+    <div class="home-footer-inner">
+      <div class="home-footer-logo">⚡ SkillBridge</div>
+      <div class="home-footer-tagline">Connecting talent with opportunity</div>
+      <div class="home-footer-links">
+        <a href="#!/login">Login</a>
+        <a href="#!/register">Register</a>
+      </div>
+      <div class="home-footer-copy">© 2025 SkillBridge. Built for the future of work.</div>
+    </div>
+  </footer>
+
+</div>
