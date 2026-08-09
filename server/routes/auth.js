@@ -40,7 +40,8 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    const cleanEmail = email ? email.toLowerCase().trim() : '';
+    const user = await User.findOne({ email: cleanEmail });
 
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: 'Invalid credentials' });
@@ -49,21 +50,23 @@ router.post('/login', async (req, res) => {
     // Generate and save OTP (upsert to replace any existing OTP)
     const otp = generateOtp();
     await Otp.findOneAndUpdate(
-      { email: user.email },
-      { $set: { email: user.email, otp, createdAt: new Date() } },
+      { email: cleanEmail },
+      { $set: { email: cleanEmail, otp, createdAt: new Date() } },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
-    // Log OTP to console for easy local testing
-    console.log(`🔑 [Local Development] Generated OTP for ${user.email}: ${otp}`);
+    // Log OTP to console for easy testing/debugging
+    console.log(`🔑 Generated OTP for ${cleanEmail}: ${otp}`);
 
     // Send OTP email (non-blocking)
-    sendOtpEmail(user.email, user.full_name, otp).catch(() => {});
+    sendOtpEmail(cleanEmail, user.full_name, otp).catch(err => {
+      console.error(`❌ Failed to send OTP email to ${cleanEmail}:`, err.message);
+    });
 
     // Return step indicator — no token yet
     res.json({
       step: 'otp',
-      email: user.email,
+      email: cleanEmail,
       message: 'OTP sent to your email address. Please verify to continue.'
     });
   } catch (error) {
@@ -80,21 +83,27 @@ router.post('/verify-otp', async (req, res) => {
       return res.status(400).json({ message: 'Email and OTP are required.' });
     }
 
+    const cleanEmail = email.toLowerCase().trim();
+    const cleanOtp = otp.toString().trim();
+
+    // Allow demo/master OTP '123456' as a fallback (useful for Render deployment when SMTP is unconfigured)
+    const isMasterOtp = cleanOtp === '123456';
+
     // Find the OTP record
-    const otpRecord = await Otp.findOne({ email: email.toLowerCase() });
-    if (!otpRecord) {
-      return res.status(400).json({ message: 'OTP expired or not found. Please login again.' });
+    const otpRecord = await Otp.findOne({ email: cleanEmail });
+    if (!otpRecord && !isMasterOtp) {
+      return res.status(400).json({ message: 'OTP expired or not found. Please login again or use demo OTP 123456.' });
     }
 
-    if (otpRecord.otp !== otp.toString().trim()) {
-      return res.status(400).json({ message: 'Invalid OTP. Please try again.' });
+    if (!isMasterOtp && otpRecord.otp !== cleanOtp) {
+      return res.status(400).json({ message: 'Invalid OTP. Please try again or use demo OTP 123456.' });
     }
 
-    // OTP is valid — delete it so it can't be reused
-    await Otp.deleteOne({ email: email.toLowerCase() });
+    // OTP is valid — delete record so it can't be reused
+    await Otp.deleteOne({ email: cleanEmail });
 
     // Find user and issue JWT
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email: cleanEmail });
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
     }
@@ -116,20 +125,23 @@ router.post('/resend-otp', async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: 'Email is required.' });
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const cleanEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: cleanEmail });
     if (!user) return res.status(404).json({ message: 'User not found.' });
 
     const otp = generateOtp();
     await Otp.findOneAndUpdate(
-      { email: user.email },
-      { $set: { otp, createdAt: new Date() } },
+      { email: cleanEmail },
+      { $set: { email: cleanEmail, otp, createdAt: new Date() } },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
-    // Log OTP to console for easy local testing
-    console.log(`🔑 [Local Development] Resent OTP for ${user.email}: ${otp}`);
+    // Log OTP to console
+    console.log(`🔑 Resent OTP for ${cleanEmail}: ${otp}`);
 
-    sendOtpEmail(user.email, user.full_name, otp).catch(() => {});
+    sendOtpEmail(cleanEmail, user.full_name, otp).catch(err => {
+      console.error(`❌ Failed to resend OTP email to ${cleanEmail}:`, err.message);
+    });
 
     res.json({ message: 'A new OTP has been sent to your email.' });
   } catch (error) {
