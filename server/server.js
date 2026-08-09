@@ -8,12 +8,14 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const User = require('./models/User');
 const seedDatabase = require('./seed');
 const { startPenaltyEngine } = require('./utils/penaltyEngine');
+const visitorTracker = require('./middleware/visitorTracker');
 
 const app = express();
 
 // ─── Middleware ───────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
+app.use(visitorTracker);
 
 // Serve static frontend from /public
 app.use(express.static(path.join(__dirname, 'public')));

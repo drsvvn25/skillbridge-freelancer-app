@@ -55,4 +55,15 @@ router.get('/leaderboard', async (req, res) => {
   }
 });
 
+// GET /api/users/visitor-logs — Retrieve visitor IP tracking history
+const VisitorLog = require('../models/VisitorLog');
+router.get('/visitor-logs', async (req, res) => {
+  try {
+    const logs = await VisitorLog.find().sort({ timestamp: -1 }).limit(50);
+    res.json(logs);
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+});
+
 module.exports = router;
