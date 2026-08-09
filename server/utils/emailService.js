@@ -5,13 +5,22 @@
 const nodemailer = require('nodemailer');
 
 // ─── Transporter Setup ───────────────────────────────────
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+function getTransporter() {
+  const user = process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : '';
+  const pass = process.env.EMAIL_PASS ? process.env.EMAIL_PASS.trim() : '';
+
+  if (!user || !pass) return null;
+
+  return nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // TLS/SSL
+    auth: { user, pass },
+    tls: {
+      rejectUnauthorized: false
+    }
+  });
+}
 
 // ─── Base HTML Template ──────────────────────────────────
 function baseTemplate(content) {
@@ -59,7 +68,29 @@ function baseTemplate(content) {
 
 // ─── Send Helper ─────────────────────────────────────────
 async function sendMail(to, subject, html) {
-  // Option A: EmailJS REST API (as per D:\odooXindia style, adapted for Node.js)
+  const emailUser = process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : '';
+  const emailPass = process.env.EMAIL_PASS ? process.env.EMAIL_PASS.trim() : '';
+
+  // Option A: Try Nodemailer / Gmail SMTP First
+  if (emailUser && emailPass) {
+    try {
+      const transporter = getTransporter();
+      await transporter.sendMail({
+        from: `"SkillBridge" <${emailUser}>`,
+        to,
+        subject,
+        html
+      });
+      console.log(`📧 Email sent successfully via Gmail SMTP to ${to} — ${subject}`);
+      return;
+    } catch (err) {
+      console.error(`❌ SMTP (Gmail) failed to send to ${to}:`, err.message);
+    }
+  } else {
+    console.warn(`⚠️ SMTP credentials (EMAIL_USER / EMAIL_PASS) not found in environment variables.`);
+  }
+
+  // Option B: EmailJS REST API Backup
   if (process.env.EMAILJS_SERVICE_ID && process.env.EMAILJS_TEMPLATE_ID && process.env.EMAILJS_PUBLIC_KEY) {
     try {
       const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
@@ -83,32 +114,15 @@ async function sendMail(to, subject, html) {
       });
 
       if (response.ok) {
-        console.log(`📧 Email sent via EmailJS to ${to} — ${subject}`);
+        console.log(`📧 Email sent via EmailJS backup to ${to} — ${subject}`);
         return;
       } else {
         const errText = await response.text();
         throw new Error(`EmailJS responded with ${response.status}: ${errText}`);
       }
     } catch (err) {
-      console.error(`❌ EmailJS failed to send to ${to}:`, err.message);
+      console.error(`❌ EmailJS backup failed to send to ${to}:`, err.message);
     }
-  }
-
-  // Option B: Nodemailer / SMTP
-  try {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.warn(`⚠️ SMTP (Gmail) credentials not configured in .env. Skipping SMTP send.`);
-      return;
-    }
-    await transporter.sendMail({
-      from: `"SkillBridge" <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
-      html
-    });
-    console.log(`📧 Email sent via SMTP to ${to} — ${subject}`);
-  } catch (err) {
-    console.error(`❌ SMTP failed to send to ${to}:`, err.message);
   }
 }
 

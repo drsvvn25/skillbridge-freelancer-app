@@ -58,10 +58,12 @@ router.post('/login', async (req, res) => {
     // Log OTP to console for easy testing/debugging
     console.log(`🔑 Generated OTP for ${cleanEmail}: ${otp}`);
 
-    // Send OTP email (non-blocking)
-    sendOtpEmail(cleanEmail, user.full_name, otp).catch(err => {
+    // Send OTP email (awaiting send ensures email connection completes before HTTP response ends on Render)
+    try {
+      await sendOtpEmail(cleanEmail, user.full_name, otp);
+    } catch (err) {
       console.error(`❌ Failed to send OTP email to ${cleanEmail}:`, err.message);
-    });
+    }
 
     // Return step indicator — no token yet
     res.json({
@@ -139,9 +141,11 @@ router.post('/resend-otp', async (req, res) => {
     // Log OTP to console
     console.log(`🔑 Resent OTP for ${cleanEmail}: ${otp}`);
 
-    sendOtpEmail(cleanEmail, user.full_name, otp).catch(err => {
+    try {
+      await sendOtpEmail(cleanEmail, user.full_name, otp);
+    } catch (err) {
       console.error(`❌ Failed to resend OTP email to ${cleanEmail}:`, err.message);
-    });
+    }
 
     res.json({ message: 'A new OTP has been sent to your email.' });
   } catch (error) {
