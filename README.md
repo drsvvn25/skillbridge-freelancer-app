@@ -269,7 +269,7 @@ Paste the following content and fill in your values:
 ```env
 PORT=5000
 MONGODB_URI=mongodb+srv://your_user:your_password@cluster0.xxxxx.mongodb.net/skillbridge?retryWrites=true&w=majority
-JWT_SECRET=MySkillBridgeSecretKey2025ChangeMeInProduction
+JWT_SECRET=MySkillBridgeSecretKey2026ChangeMeInProduction
 EMAIL_USER=your_gmail_address@gmail.com
 EMAIL_PASS=your_16_character_app_password
 ```

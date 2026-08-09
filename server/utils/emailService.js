@@ -55,7 +55,7 @@ function baseTemplate(content) {
                   <!-- Footer -->
                   <hr style="border:none;border-top:1px solid #334155;margin:32px 0;" />
                   <p style="margin:0;font-size:0.78rem;color:#64748b;text-align:center;">
-                    © 2025 SkillBridge &nbsp;·&nbsp; Built for the future of work<br/>
+                    © 2026 SkillBridge &nbsp;·&nbsp; Built for the future of work<br/>
                     <a href="https://skillbridge-freelancer-app.onrender.com" style="color:#1dbf73;text-decoration:none;">Visit Platform</a>
                   </p>
                 </td>
