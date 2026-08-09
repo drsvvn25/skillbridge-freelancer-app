@@ -24,7 +24,7 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 app.use('/uploads', express.static(uploadsDir));
 
 // ─── Database ─────────────────────────────────────────────────
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/freelancer_market';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://drsvvn25_db_user:KxrLb2TgXtqdkJPV@cluster0.epiwhtv.mongodb.net/skillbridge_db?retryWrites=true&w=majority';
 mongoose.connect(MONGODB_URI)
   .then(async () => {
     console.log('✅ Connected to MongoDB');
