@@ -52,7 +52,7 @@ router.post('/login', async (req, res) => {
     await Otp.findOneAndUpdate(
       { email: cleanEmail },
       { $set: { email: cleanEmail, otp, createdAt: new Date() } },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
+      { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
     );
 
     // Log OTP to console for easy testing/debugging
@@ -138,7 +138,7 @@ router.post('/resend-otp', async (req, res) => {
     await Otp.findOneAndUpdate(
       { email: cleanEmail },
       { $set: { email: cleanEmail, otp, createdAt: new Date() } },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
+      { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
     );
 
     // Log OTP to console

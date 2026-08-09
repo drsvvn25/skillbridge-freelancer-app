@@ -71,62 +71,7 @@ function baseTemplate(content) {
 
 // ─── Send Helper ─────────────────────────────────────────
 async function sendMail(to, subject, html, extraParams = {}) {
-  const emailUser = process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : '';
-  const emailPass = process.env.EMAIL_PASS ? process.env.EMAIL_PASS.trim() : '';
-
-  // Strategy 1: Nodemailer official built-in preset for Gmail
-  if (emailUser && emailPass) {
-    try {
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: { user: emailUser, pass: emailPass },
-        connectionTimeout: 4000,
-        greetingTimeout: 4000,
-        socketTimeout: 5000,
-        tls: { rejectUnauthorized: false }
-      });
-
-      await transporter.sendMail({
-        from: `"SkillBridge" <${emailUser}>`,
-        to,
-        subject,
-        html
-      });
-      console.log(`📧 Email sent successfully via Gmail service to ${to} — ${subject}`);
-      return;
-    } catch (err) {
-      console.error(`❌ Gmail service attempt failed for ${to}:`, err.message);
-    }
-
-    // Strategy 2: Nodemailer custom host smtp.gmail.com on Port 587 (STARTTLS)
-    try {
-      const transporter587 = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 587,
-        secure: false,
-        auth: { user: emailUser, pass: emailPass },
-        connectionTimeout: 4000,
-        greetingTimeout: 4000,
-        socketTimeout: 5000,
-        tls: { rejectUnauthorized: false }
-      });
-
-      await transporter587.sendMail({
-        from: `"SkillBridge" <${emailUser}>`,
-        to,
-        subject,
-        html
-      });
-      console.log(`📧 Email sent successfully via Gmail SMTP (port 587) to ${to} — ${subject}`);
-      return;
-    } catch (err) {
-      console.error(`❌ Gmail SMTP (port 587) attempt failed for ${to}:`, err.message);
-    }
-  } else {
-    console.warn(`⚠️ SMTP credentials (EMAIL_USER / EMAIL_PASS) not configured in environment variables.`);
-  }
-
-  // Strategy 3: EmailJS REST API over HTTPS (Port 443 - never blocked by cloud hosts)
+  // Strategy 1: EmailJS REST API over HTTPS (Port 443 - Fast & never blocked by cloud hosts)
   const serviceId = process.env.EMAILJS_SERVICE_ID || 'service_nbx8299';
   const templateId = process.env.EMAILJS_TEMPLATE_ID || 'template_1rphl1k';
   const publicKey = process.env.EMAILJS_PUBLIC_KEY || 'YRQLpu5lDtCN6ynvc';
@@ -158,14 +103,66 @@ async function sendMail(to, subject, html, extraParams = {}) {
       });
 
       if (response.ok) {
-        console.log(`📧 Email sent via EmailJS REST API to ${to} — ${subject}`);
+        console.log(`📧 Email sent instantly via EmailJS REST API to ${to} — ${subject}`);
         return;
       } else {
         const errText = await response.text();
-        throw new Error(`EmailJS responded with ${response.status}: ${errText}`);
+        console.warn(`⚠️ EmailJS REST API responded with ${response.status}: ${errText}. Trying SMTP fallback...`);
       }
     } catch (err) {
-      console.error(`❌ EmailJS REST API attempt failed for ${to}:`, err.message);
+      console.warn(`⚠️ EmailJS REST API failed for ${to}: ${err.message}. Trying SMTP fallback...`);
+    }
+  }
+
+  // Strategy 2: Nodemailer Gmail SMTP Fallback
+  const emailUser = process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : '';
+  const emailPass = process.env.EMAIL_PASS ? process.env.EMAIL_PASS.trim() : '';
+
+  if (emailUser && emailPass) {
+    try {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: { user: emailUser, pass: emailPass },
+        connectionTimeout: 3000,
+        greetingTimeout: 3000,
+        socketTimeout: 4000,
+        tls: { rejectUnauthorized: false }
+      });
+
+      await transporter.sendMail({
+        from: `"SkillBridge" <${emailUser}>`,
+        to,
+        subject,
+        html
+      });
+      console.log(`📧 Email sent successfully via Gmail service to ${to} — ${subject}`);
+      return;
+    } catch (err) {
+      console.error(`❌ Gmail service attempt failed for ${to}:`, err.message);
+    }
+
+    try {
+      const transporter587 = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: { user: emailUser, pass: emailPass },
+        connectionTimeout: 3000,
+        greetingTimeout: 3000,
+        socketTimeout: 4000,
+        tls: { rejectUnauthorized: false }
+      });
+
+      await transporter587.sendMail({
+        from: `"SkillBridge" <${emailUser}>`,
+        to,
+        subject,
+        html
+      });
+      console.log(`📧 Email sent successfully via Gmail SMTP (port 587) to ${to} — ${subject}`);
+      return;
+    } catch (err) {
+      console.error(`❌ Gmail SMTP (port 587) attempt failed for ${to}:`, err.message);
     }
   }
 }
