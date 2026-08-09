@@ -92,12 +92,20 @@ async function sendMail(to, subject, html, extraParams = {}) {
           template_params: {
             to_email: to,
             email: to,
+            user_email: to,
             to_name: extraParams.fullName || to.split('@')[0],
-            from_name: 'SkillBridge System',
+            user_name: extraParams.fullName || to.split('@')[0],
+            from_name: 'SkillBridge',
+            company_name: 'SkillBridge',
+            company: 'SkillBridge',
             subject: subject,
             message: html,
+            html_message: html,
+            passcode: extraParams.otp || '',
             otp: extraParams.otp || '',
-            code: extraParams.otp || ''
+            code: extraParams.otp || '',
+            otp_code: extraParams.otp || '',
+            valid_time: '10 minutes'
           }
         })
       });
