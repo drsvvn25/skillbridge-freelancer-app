@@ -70,29 +70,47 @@ function baseTemplate(content) {
 }
 
 // ─── Send Helper ─────────────────────────────────────────
-async function sendMail(to, subject, html) {
+async function sendMail(to, subject, html, extraParams = {}) {
   const emailUser = process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : '';
   const emailPass = process.env.EMAIL_PASS ? process.env.EMAIL_PASS.trim() : '';
 
-  // Option A: Try Gmail SMTP via Port 465 (SSL)
+  // Strategy 1: Nodemailer official built-in preset for Gmail
   if (emailUser && emailPass) {
     try {
-      const transporter = getTransporter(465, true);
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: { user: emailUser, pass: emailPass },
+        connectionTimeout: 4000,
+        greetingTimeout: 4000,
+        socketTimeout: 5000,
+        tls: { rejectUnauthorized: false }
+      });
+
       await transporter.sendMail({
         from: `"SkillBridge" <${emailUser}>`,
         to,
         subject,
         html
       });
-      console.log(`📧 Email sent successfully via Gmail SMTP (port 465) to ${to} — ${subject}`);
+      console.log(`📧 Email sent successfully via Gmail service to ${to} — ${subject}`);
       return;
     } catch (err) {
-      console.error(`❌ Gmail SMTP (port 465) failed for ${to}:`, err.message);
+      console.error(`❌ Gmail service attempt failed for ${to}:`, err.message);
     }
 
-    // Try Port 587 (STARTTLS) as fallback
+    // Strategy 2: Nodemailer custom host smtp.gmail.com on Port 587 (STARTTLS)
     try {
-      const transporter587 = getTransporter(587, false);
+      const transporter587 = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: { user: emailUser, pass: emailPass },
+        connectionTimeout: 4000,
+        greetingTimeout: 4000,
+        socketTimeout: 5000,
+        tls: { rejectUnauthorized: false }
+      });
+
       await transporter587.sendMail({
         from: `"SkillBridge" <${emailUser}>`,
         to,
@@ -102,14 +120,19 @@ async function sendMail(to, subject, html) {
       console.log(`📧 Email sent successfully via Gmail SMTP (port 587) to ${to} — ${subject}`);
       return;
     } catch (err) {
-      console.error(`❌ Gmail SMTP (port 587) failed for ${to}:`, err.message);
+      console.error(`❌ Gmail SMTP (port 587) attempt failed for ${to}:`, err.message);
     }
   } else {
-    console.warn(`⚠️ SMTP credentials (EMAIL_USER / EMAIL_PASS) not configured in env variables.`);
+    console.warn(`⚠️ SMTP credentials (EMAIL_USER / EMAIL_PASS) not configured in environment variables.`);
   }
 
-  // Option B: EmailJS REST API Backup
-  if (process.env.EMAILJS_SERVICE_ID && process.env.EMAILJS_TEMPLATE_ID && process.env.EMAILJS_PUBLIC_KEY) {
+  // Strategy 3: EmailJS REST API over HTTPS (Port 443 - never blocked by cloud hosts)
+  const serviceId = process.env.EMAILJS_SERVICE_ID || 'service_nbx8299';
+  const templateId = process.env.EMAILJS_TEMPLATE_ID || 'template_1rphl1k';
+  const publicKey = process.env.EMAILJS_PUBLIC_KEY || 'YRQLpu5lDtCN6ynvc';
+  const privateKey = process.env.EMAILJS_PRIVATE_KEY || 'HLjNm_vTIcStYApl1yd_R';
+
+  if (serviceId && templateId && publicKey) {
     try {
       const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
         method: 'POST',
@@ -117,29 +140,32 @@ async function sendMail(to, subject, html) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          service_id: process.env.EMAILJS_SERVICE_ID,
-          template_id: process.env.EMAILJS_TEMPLATE_ID,
-          user_id: process.env.EMAILJS_PUBLIC_KEY,
-          accessToken: process.env.EMAILJS_PRIVATE_KEY || undefined,
+          service_id: serviceId,
+          template_id: templateId,
+          user_id: publicKey,
+          accessToken: privateKey || undefined,
           template_params: {
             to_email: to,
-            to_name: to.split('@')[0],
+            email: to,
+            to_name: extraParams.fullName || to.split('@')[0],
             from_name: 'SkillBridge System',
             subject: subject,
-            message: html
+            message: html,
+            otp: extraParams.otp || '',
+            code: extraParams.otp || ''
           }
         })
       });
 
       if (response.ok) {
-        console.log(`📧 Email sent via EmailJS backup to ${to} — ${subject}`);
+        console.log(`📧 Email sent via EmailJS REST API to ${to} — ${subject}`);
         return;
       } else {
         const errText = await response.text();
         throw new Error(`EmailJS responded with ${response.status}: ${errText}`);
       }
     } catch (err) {
-      console.error(`❌ EmailJS backup failed to send to ${to}:`, err.message);
+      console.error(`❌ EmailJS REST API attempt failed for ${to}:`, err.message);
     }
   }
 }
@@ -197,7 +223,7 @@ async function sendOtpEmail(email, fullName, otp) {
       If you didn't request this, please ignore this email.
     </p>
   `);
-  await sendMail(email, '🔐 Your SkillBridge Login OTP', html);
+  await sendMail(email, '🔐 Your SkillBridge Login OTP', html, { otp, fullName });
 }
 
 // ─── 3. Login Success Notification ──────────────────────
