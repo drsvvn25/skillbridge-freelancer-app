@@ -5,7 +5,7 @@
 const nodemailer = require('nodemailer');
 
 // ─── Transporter Setup ───────────────────────────────────
-function getTransporter() {
+function getTransporter(port = 465, secure = true) {
   const user = process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : '';
   const pass = process.env.EMAIL_PASS ? process.env.EMAIL_PASS.trim() : '';
 
@@ -13,9 +13,12 @@ function getTransporter() {
 
   return nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // TLS/SSL
+    port: port,
+    secure: secure, // SSL (465) or STARTTLS (587)
     auth: { user, pass },
+    connectionTimeout: 3500, // 3.5s max to connect TCP
+    greetingTimeout: 3500,   // 3.5s max for greeting
+    socketTimeout: 4500,     // 4.5s socket timeout
     tls: {
       rejectUnauthorized: false
     }
@@ -71,23 +74,38 @@ async function sendMail(to, subject, html) {
   const emailUser = process.env.EMAIL_USER ? process.env.EMAIL_USER.trim() : '';
   const emailPass = process.env.EMAIL_PASS ? process.env.EMAIL_PASS.trim() : '';
 
-  // Option A: Try Nodemailer / Gmail SMTP First
+  // Option A: Try Gmail SMTP via Port 465 (SSL)
   if (emailUser && emailPass) {
     try {
-      const transporter = getTransporter();
+      const transporter = getTransporter(465, true);
       await transporter.sendMail({
         from: `"SkillBridge" <${emailUser}>`,
         to,
         subject,
         html
       });
-      console.log(`📧 Email sent successfully via Gmail SMTP to ${to} — ${subject}`);
+      console.log(`📧 Email sent successfully via Gmail SMTP (port 465) to ${to} — ${subject}`);
       return;
     } catch (err) {
-      console.error(`❌ SMTP (Gmail) failed to send to ${to}:`, err.message);
+      console.error(`❌ Gmail SMTP (port 465) failed for ${to}:`, err.message);
+    }
+
+    // Try Port 587 (STARTTLS) as fallback
+    try {
+      const transporter587 = getTransporter(587, false);
+      await transporter587.sendMail({
+        from: `"SkillBridge" <${emailUser}>`,
+        to,
+        subject,
+        html
+      });
+      console.log(`📧 Email sent successfully via Gmail SMTP (port 587) to ${to} — ${subject}`);
+      return;
+    } catch (err) {
+      console.error(`❌ Gmail SMTP (port 587) failed for ${to}:`, err.message);
     }
   } else {
-    console.warn(`⚠️ SMTP credentials (EMAIL_USER / EMAIL_PASS) not found in environment variables.`);
+    console.warn(`⚠️ SMTP credentials (EMAIL_USER / EMAIL_PASS) not configured in env variables.`);
   }
 
   // Option B: EmailJS REST API Backup

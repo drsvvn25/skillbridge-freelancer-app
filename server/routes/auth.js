@@ -58,11 +58,14 @@ router.post('/login', async (req, res) => {
     // Log OTP to console for easy testing/debugging
     console.log(`🔑 Generated OTP for ${cleanEmail}: ${otp}`);
 
-    // Send OTP email (awaiting send ensures email connection completes before HTTP response ends on Render)
+    // Send OTP email with max 2.5s timeout so client never hangs on "Sending OTP..."
     try {
-      await sendOtpEmail(cleanEmail, user.full_name, otp);
+      await Promise.race([
+        sendOtpEmail(cleanEmail, user.full_name, otp),
+        new Promise(resolve => setTimeout(resolve, 2500))
+      ]);
     } catch (err) {
-      console.error(`❌ Failed to send OTP email to ${cleanEmail}:`, err.message);
+      console.error(`❌ Error attempting OTP email send to ${cleanEmail}:`, err.message);
     }
 
     // Return step indicator — no token yet
@@ -142,9 +145,12 @@ router.post('/resend-otp', async (req, res) => {
     console.log(`🔑 Resent OTP for ${cleanEmail}: ${otp}`);
 
     try {
-      await sendOtpEmail(cleanEmail, user.full_name, otp);
+      await Promise.race([
+        sendOtpEmail(cleanEmail, user.full_name, otp),
+        new Promise(resolve => setTimeout(resolve, 2500))
+      ]);
     } catch (err) {
-      console.error(`❌ Failed to resend OTP email to ${cleanEmail}:`, err.message);
+      console.error(`❌ Error attempting OTP email resend to ${cleanEmail}:`, err.message);
     }
 
     res.json({ message: 'A new OTP has been sent to your email.' });
