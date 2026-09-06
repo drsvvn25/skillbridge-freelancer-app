@@ -11,15 +11,10 @@ const User    = require('../models/User');
 const { GoogleGenAI } = require('@google/genai');
 
 // ── Gemini AI setup ──────────────────────────────────────────────
-const GEMINI_KEY    = process.env.GEMINI_API_KEY;
-const geminiEnabled = GEMINI_KEY && !GEMINI_KEY.includes('your-gemini');
-let   ai            = null;
-
-if (geminiEnabled) {
-  ai = new GoogleGenAI({ apiKey: GEMINI_KEY });
-  console.log('🤖 [SkillBot] Gemini AI enabled (gemini-2.0-flash)');
-} else {
-  console.warn('⚠️  [SkillBot] GEMINI_API_KEY not set — running in rule-based mode');
+function getGeminiClient() {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key || key.includes('your-gemini')) return null;
+  return new GoogleGenAI({ apiKey: key });
 }
 
 // ── In-memory conversation history per user ─────────────────────
@@ -37,21 +32,33 @@ const CATEGORIES = [
 // GEMINI AI chat function
 // ─────────────────────────────────────────────────────────────────
 async function askGemini(systemPrompt, history, userMessage) {
-  if (!ai) return null;
-
-  try {
-    const chat = ai.chats.create({
-      model: 'gemini-2.0-flash',
-      config: { systemInstruction: systemPrompt },
-      history: history || []
-    });
-
-    const response = await chat.sendMessage({ message: userMessage });
-    return response.text;
-  } catch (err) {
-    console.error('[SkillBot Gemini Error]', err.message);
+  const client = getGeminiClient();
+  if (!client) {
+    console.warn('⚠️  [SkillBot] GEMINI_API_KEY not set or invalid placeholder');
     return null;
   }
+
+  const modelsToTry = ['gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-3.6-flash'];
+
+  for (const model of modelsToTry) {
+    try {
+      const chat = client.chats.create({
+        model: model,
+        config: { systemInstruction: systemPrompt },
+        history: history || []
+      });
+
+      const response = await chat.sendMessage({ message: userMessage });
+      if (response && response.text) {
+        return response.text;
+      }
+    } catch (err) {
+      console.warn(`[SkillBot Gemini model ${model} failed, trying next...]`, err.message);
+    }
+  }
+
+  console.error('[SkillBot Gemini Error] All models failed or unavailable.');
+  return null;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -249,27 +256,25 @@ router.post('/message', auth, async (req, res) => {
     }
 
     // ── Gemini AI free-form conversation ───────────────────────
-    if (geminiEnabled) {
-      const systemPrompt = await buildSystemPrompt(req.user);
-      const aiReply = await askGemini(systemPrompt, session.history, userMsg);
+    const systemPrompt = await buildSystemPrompt(req.user);
+    const aiReply = await askGemini(systemPrompt, session.history, userMsg);
 
-      if (aiReply) {
-        // Store conversation history (last 20 turns to avoid token overflow)
-        session.history.push(
-          { role: 'user',  parts: [{ text: userMsg  }] },
-          { role: 'model', parts: [{ text: aiReply  }] }
-        );
-        if (session.history.length > 40) {
-          session.history = session.history.slice(-40); // keep last 20 turns
-        }
-        sessions.set(userId, session);
-        return res.json({
-          reply: aiReply,
-          type: 'text',
-          source: 'gemini',
-          quickActions: getQuickActions(userType)
-        });
+    if (aiReply) {
+      // Store conversation history (last 20 turns to avoid token overflow)
+      session.history.push(
+        { role: 'user',  parts: [{ text: userMsg  }] },
+        { role: 'model', parts: [{ text: aiReply  }] }
+      );
+      if (session.history.length > 40) {
+        session.history = session.history.slice(-40); // keep last 20 turns
       }
+      sessions.set(userId, session);
+      return res.json({
+        reply: aiReply,
+        type: 'text',
+        source: 'gemini',
+        quickActions: getQuickActions(userType)
+      });
     }
 
     // ── Rule-based fallback ────────────────────────────────────
@@ -591,10 +596,8 @@ router.post('/guest', async (req, res) => {
   const userMsg = (req.body.message || '').trim();
   if (!userMsg) return res.json({ reply: 'Hi! How can I help you?', type: 'text' });
 
-  // Try Gemini for guest conversations too
-  if (geminiEnabled) {
-    const guestPrompt = `You are SkillBot, the AI assistant for SkillBridge — a freelancer marketplace platform.
-You are talking to a GUEST (not logged in). Be welcoming, brief, and encourage them to sign up.
+  const guestPrompt = `You are SkillBot, the AI assistant for SkillBridge — a freelancer marketplace platform.
+You are talking to a GUEST (not logged in). Be welcoming, brief, and helpful.
 
 SkillBridge connects clients who need work done with skilled freelancers.
 - Clients post tasks with budgets
@@ -605,20 +608,11 @@ SkillBridge connects clients who need work done with skilled freelancers.
 
 Key pages: Login (#!/login), Register (#!/register)
 Format: Use **bold** for important terms, link format: [Text](url)
-Keep responses concise (2-4 sentences). Always end with a CTA to register or login.`;
+Keep responses concise (2-4 sentences).`;
 
-    try {
-      const chat = ai.chats.create({
-        model: 'gemini-2.0-flash',
-        config: { systemInstruction: guestPrompt }
-      });
-      const response = await chat.sendMessage({ message: userMsg });
-      if (response.text) {
-        return res.json({ reply: response.text, type: 'text', source: 'gemini' });
-      }
-    } catch (e) {
-      console.error('[SkillBot Guest Gemini Error]', e.message);
-    }
+  const aiReply = await askGemini(guestPrompt, [], userMsg);
+  if (aiReply) {
+    return res.json({ reply: aiReply, type: 'text', source: 'gemini' });
   }
 
   // Fallback for guests
