@@ -2,7 +2,7 @@
 // SkillBridge — AngularJS 1.8 Main Module
 // =========================================================
 
-angular.module('FreelancerApp', ['ngRoute', 'ngAnimate'])
+angular.module('FreelancerApp', ['ngRoute', 'ngAnimate', 'ngSanitize'])
 
 // ─── Route Configuration ─────────────────────────────────
 .config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {

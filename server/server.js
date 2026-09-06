@@ -48,6 +48,7 @@ app.use('/api/messages', require('./routes/messages'));
 app.use('/api/phases', require('./routes/phases'));
 app.use('/api/submissions', require('./routes/submissions'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/chatbot', require('./routes/chatbot'));
 
 // ─── Angular Route Redirects ──────────────────────────────────
 // When user types /home, /login etc directly in the browser bar,
