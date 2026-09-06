@@ -10,15 +10,17 @@ const Task    = require('../models/Task');
 const User    = require('../models/User');
 const { GoogleGenAI } = require('@google/genai');
 
-// ── Gemini AI setup ──────────────────────────────────────────────
+// ── Gemini AI setup (cached client for speed) ─────────────────────
+let cachedClient = null;
 function getGeminiClient() {
+  if (cachedClient) return cachedClient;
   const key = process.env.GEMINI_API_KEY;
   if (!key || key.includes('your-gemini')) return null;
-  return new GoogleGenAI({ apiKey: key });
+  cachedClient = new GoogleGenAI({ apiKey: key });
+  return cachedClient;
 }
 
 // ── In-memory conversation history per user ─────────────────────
-// Map<userId, { history: [{role, parts}], taskFlow: {step, data} }>
 const sessions = new Map();
 
 // ── Available categories ─────────────────────────────────────────
@@ -29,128 +31,72 @@ const CATEGORIES = [
 ];
 
 // ─────────────────────────────────────────────────────────────────
-// GEMINI AI chat function
+// GEMINI AI chat function (Optimized for low latency)
 // ─────────────────────────────────────────────────────────────────
 async function askGemini(systemPrompt, history, userMessage) {
   const client = getGeminiClient();
-  if (!client) {
-    console.warn('⚠️  [SkillBot] GEMINI_API_KEY not set or invalid placeholder');
-    return null;
-  }
+  if (!client) return null;
 
-  const modelsToTry = ['gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-3.6-flash'];
+  // Direct fast model (gemini-2.5-flash) for instant response
+  try {
+    const chat = client.chats.create({
+      model: 'gemini-2.5-flash',
+      config: { 
+        systemInstruction: systemPrompt,
+        maxOutputTokens: 180,
+        temperature: 0.6
+      },
+      history: history || []
+    });
 
-  for (const model of modelsToTry) {
-    try {
-      const chat = client.chats.create({
-        model: model,
-        config: { systemInstruction: systemPrompt },
-        history: history || []
-      });
-
-      const response = await chat.sendMessage({ message: userMessage });
-      if (response && response.text) {
-        return response.text;
-      }
-    } catch (err) {
-      console.warn(`[SkillBot Gemini model ${model} failed, trying next...]`, err.message);
+    const response = await chat.sendMessage({ message: userMessage });
+    if (response && response.text) {
+      return response.text;
     }
+  } catch (err) {
+    console.warn('[SkillBot Gemini 2.5 Flash error]', err.message);
   }
 
-  console.error('[SkillBot Gemini Error] All models failed or unavailable.');
   return null;
 }
 
 // ─────────────────────────────────────────────────────────────────
-// Build system prompt based on user context + live DB data
+// Build system prompt (Parallelized DB queries for fast execution)
 // ─────────────────────────────────────────────────────────────────
 async function buildSystemPrompt(user) {
   const userType = user.user_type;
-
-  // Fetch live context from DB
   let liveContext = '';
+
   try {
     const taskFilter = userType === 'client'
       ? { client_id: user._id }
       : { freelancer_id: user._id };
 
-    const myTasks = await Task.find(taskFilter).sort({ created_at: -1 }).limit(5);
-    const openCount = await Task.countDocuments({ status: 'open' });
+    // Parallel DB execution for speed
+    const [myTasks, openCount, fullUser] = await Promise.all([
+      Task.find(taskFilter).sort({ created_at: -1 }).limit(5).lean(),
+      Task.countDocuments({ status: 'open' }),
+      userType === 'freelancer' ? User.findById(user._id).select('skills').lean() : null
+    ]);
 
     if (userType === 'freelancer') {
-      const fullUser = await User.findById(user._id);
-      const skills = (fullUser.skills || []).join(', ') || 'none specified';
-      liveContext = `
-LIVE PLATFORM DATA:
-- User's skills: ${skills}
-- Open tasks in marketplace: ${openCount}
-- User's active/completed tasks: ${myTasks.length} (last 5 shown)
-${myTasks.map(t => `  • [${t.status}] "${t.title}" — $${t.budget}`).join('\n')}
-`;
+      const skills = (fullUser?.skills || []).join(', ') || 'none';
+      liveContext = `Skills: ${skills} | Open tasks: ${openCount} | Active tasks: ${myTasks.length}`;
     } else {
-      liveContext = `
-LIVE PLATFORM DATA:
-- Open tasks in marketplace: ${openCount}
-- User's posted tasks (last 5):
-${myTasks.length
-    ? myTasks.map(t => `  • [${t.status}] "${t.title}" — $${t.budget} — ${t.applications ? '' : '0'} applications`).join('\n')
-    : '  (none posted yet)'}
-`;
+      liveContext = `Open tasks in market: ${openCount} | Your posted tasks: ${myTasks.length}`;
     }
   } catch (e) {
     liveContext = '';
   }
 
-  const baseInstructions = `
-You are SkillBot, the premium AI assistant for SkillBridge — a freelancer marketplace platform.
-You are helpful, friendly, concise, and knowledgeable about the platform.
-
-USER INFO:
-- Name: ${user.full_name}
-- Role: ${userType} (${userType === 'client' ? 'posts tasks and hires freelancers' : 'finds tasks and earns money'})
-${liveContext}
-
-PLATFORM OVERVIEW:
-SkillBridge connects clients who need work done with skilled freelancers.
-- Categories: ${CATEGORIES.join(', ')}
-- Platform fee: 10% (freelancers keep 90%)
-- Tasks have phases with deadlines; late submissions incur $5/30min penalties
-- Features: OTP login, task phases, real-time messaging, leaderboard, proposals/bidding
-
-WHAT YOU CAN DO FOR THIS USER:
-${userType === 'client' ? `
-• Guide them through posting a task — but for ACTUAL task creation, tell them to say exactly "post a task" so the structured wizard starts
-• Explain how to review bids and assign freelancers
-• Describe their task statuses when asked
-• Navigate them to pages: marketplace, dashboard, profile, leaderboard, post-task
-` : `
-• Recommend tasks based on their skills (tell them to say "recommend me tasks" for the smart recommendation engine)
-• Explain how to apply/bid on tasks
-• Describe their current work status
-• Navigate them to pages: marketplace, dashboard, profile, leaderboard
-`}
-• Answer any general question about how SkillBridge works
-• Be encouraging and help them succeed on the platform
-
-SPECIAL COMMANDS (handle these yourself by suggesting the exact command):
-- "post a task" → starts the structured task creation wizard (CLIENT only)
-- "recommend me tasks" → runs the AI skill-matching engine (FREELANCER only)
-- "my tasks" → shows their task list
-- "my stats" → shows performance stats
-- "go to [page]" → navigates to that page
-
-FORMATTING:
-- Use **bold** for important terms
-- Use bullet points with • for lists
-- Keep responses concise (3-5 sentences max for simple questions)
-- Use emojis sparingly for warmth
-- When suggesting navigation, format links as [Page Name](#!/route)
-
-IMPORTANT: You are NOT to make up task data or user data. Use only what's provided in LIVE PLATFORM DATA above.
-Always stay on-topic about the SkillBridge platform and freelancing. If asked something off-topic, gently redirect.
-`;
-
-  return baseInstructions;
+  return `You are SkillBot, AI assistant for SkillBridge freelancer platform.
+USER: ${user.full_name} (${userType}). ${liveContext}
+INSTRUCTIONS:
+- Be helpful, concise (2-4 sentences max), friendly, and format with **bold** & bullet points.
+- SkillBridge is a freelance platform (10% fee, phase milestones, bids, penalties).
+- For actual task posting tell clients to type "post a task".
+- For task recommendations tell freelancers to type "recommend me tasks".
+- Stay on topic about SkillBridge and freelancing.`;
 }
 
 // ─────────────────────────────────────────────────────────────────
