@@ -70,6 +70,13 @@
                 }">{{ task.status | replace:'_':' ' }}</span>
           <a href="#!/messages/{{ task._id }}" class="btn btn-outline btn-sm" ng-if="task.status==='in_progress'">💬 Chat</a>
           <button class="btn btn-ghost btn-sm" ng-if="isClient() && task.status==='in_progress'" ng-click="cancelTask(task)">Cancel</button>
+          <button class="btn btn-outline btn-sm"
+                  style="border-color:#ef4444;color:#ef4444;"
+                  ng-if="isFreelancer() && (task.status==='completed' || task.status==='cancelled')"
+                  ng-click="deleteTask(task)"
+                  title="Delete this task from your dashboard">
+            🗑️ Delete Task
+          </button>
         </div>
       </div>
 

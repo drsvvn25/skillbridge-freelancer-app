@@ -39,6 +39,7 @@ const taskSchema = new mongoose.Schema({
   current_phase_index: { type: Number, default: 0 },
   penalty_applied: { type: Number, default: 0 }, // in dollars
   commission_amount: { type: Number, default: 0 },
+  deleted_by_freelancer: { type: Boolean, default: false },
   created_at: { type: Date, default: Date.now },
   completed_at: { type: Date, default: null },
 }, {

@@ -103,6 +103,10 @@ router.get('/', auth, async (req, res) => {
     if (client_id) filter.client_id = client_id;
     if (freelancer_id) filter.freelancer_id = freelancer_id;
 
+    if (req.user.user_type === 'freelancer') {
+      filter.$and.push({ deleted_by_freelancer: { $ne: true } });
+    }
+
     if (search) {
       filter.$and.push({
         $or: [
@@ -242,6 +246,30 @@ router.patch('/:id/phases', auth, async (req, res) => {
     res.json(task);
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+});
+
+// Delete Task (Freelancer side — completed or cancelled tasks only)
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ message: 'Task not found' });
+
+    const isFreelancer = task.freelancer_id && task.freelancer_id.toString() === req.user._id.toString();
+
+    if (!isFreelancer) {
+      return res.status(403).json({ message: 'Only the assigned freelancer can delete this task from their dashboard' });
+    }
+
+    if (task.status !== 'completed' && task.status !== 'cancelled') {
+      return res.status(400).json({ message: 'Delete option is only available for completed or cancelled tasks' });
+    }
+
+    task.deleted_by_freelancer = true;
+    await task.save();
+    res.json({ message: 'Task deleted successfully from freelancer dashboard' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 });
 

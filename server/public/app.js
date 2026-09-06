@@ -115,6 +115,9 @@ angular.module('FreelancerApp', ['ngRoute', 'ngAnimate', 'ngSanitize'])
     },
     updatePhase: function(taskId, phaseIndex, status) {
       return $http.patch('/api/tasks/' + taskId + '/phases', { phaseIndex, status });
+    },
+    delete: function(id) {
+      return $http.delete('/api/tasks/' + id);
     }
   };
 }])

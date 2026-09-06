@@ -170,4 +170,17 @@ function($scope, $rootScope, $http, $location, $anchorScroll, $timeout, TaskServ
     TaskService.update(task._id, { status: 'cancelled' })
       .then(function() { $rootScope.showToast('Task cancelled.'); loadDashboard(); });
   };
+
+  // ── Delete Task (Freelancer side for completed/cancelled tasks) ──
+  $scope.deleteTask = function(task) {
+    if (!confirm('Are you sure you want to delete this task from your dashboard?')) return;
+    TaskService.delete(task._id)
+      .then(function() {
+        $rootScope.showToast('Task deleted 🗑️');
+        loadDashboard(false);
+      })
+      .catch(function(err) {
+        $rootScope.showToast((err.data && err.data.message) || 'Failed to delete task', true);
+      });
+  };
 }]);
