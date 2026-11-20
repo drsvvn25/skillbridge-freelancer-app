@@ -56,9 +56,9 @@
         <div class="form-group" ng-class="{'has-error': taskForm.budget.$dirty && taskForm.budget.$invalid}">
           <label class="form-label">Budget (USD) *</label>
           <input class="form-control" type="number" ng-model="taskData.budget" name="budget" placeholder="500" required min="5" />
-          <div class="form-error" ng-show="taskForm.budget.$dirty && taskForm.budget.$invalid">Min budget is $5</div>
+          <div class="form-error" ng-show="taskForm.budget.$dirty && taskForm.budget.$invalid">Min budget is {{ 5 | money:0 }}</div>
           <div class="form-hint" ng-if="taskData.budget > 0">
-            Platform fee (10%): -${{ getCommission() }} &nbsp;|&nbsp; Freelancer earns: <strong class="text-brand">${{ getFreelancerNet() }}</strong>
+            Platform fee (10%): -{{ getCommission() | money:2 }} &nbsp;|&nbsp; Freelancer earns: <strong class="text-brand">{{ getFreelancerNet() | money:2 }}</strong>
           </div>
         </div>
 
@@ -103,7 +103,7 @@
         <div class="penalty-alert mt-2">
           <span class="penalty-icon">⚠️</span>
           <span class="penalty-text" style="font-size:0.8rem;">
-            Late penalty: <strong>$5 per 30 minutes</strong> deducted from freelancer payout
+            Late penalty: <strong>{{ 5 | money:0 }} per 30 minutes</strong> deducted from freelancer payout
           </span>
         </div>
       </div>

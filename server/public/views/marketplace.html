@@ -47,9 +47,9 @@
     <!-- Budget Range Filter (Upwork style) -->
     <select class="form-control" style="width:auto;min-width:145px;" ng-model="budgetRange" ng-change="applyFiltersAndSort()">
       <option value="">Any Budget</option>
-      <option value="under-100">Under $100</option>
-      <option value="100-500">$100 – $500</option>
-      <option value="above-500">$500+ (High Value)</option>
+      <option value="under-100">Under {{ 100 | money:0 }}</option>
+      <option value="100-500">{{ 100 | money:0 }} – {{ 500 | money:0 }}</option>
+      <option value="above-500">{{ 500 | money:0 }}+ (High Value)</option>
     </select>
 
     <!-- Status Filter -->
@@ -144,13 +144,13 @@
       <div class="upwork-meta-row">
         <div>
           <div class="task-budget" style="font-size:1.35rem;font-weight:800;">
-            ${{ task.budget }}
+            {{ task.budget | money:0 }}
           </div>
           <div class="task-net" style="font-size:0.72rem;color:var(--text-3);margin-top:1px;">
-            Net Payout: <strong class="text-brand">${{ task.budget * 0.9 | number:2 }}</strong>
+            Net Payout: <strong class="text-brand">{{ (task.budget * 0.9) | money:2 }}</strong>
           </div>
           <div class="bid-range" ng-if="getLowestBid(task)" style="font-size:0.75rem;color:var(--brand);margin-top:2px;">
-            Lowest Bid: ${{ getLowestBid(task) }}
+            Lowest Bid: {{ getLowestBid(task) | money:0 }}
           </div>
         </div>
 
@@ -212,7 +212,7 @@
         <div style="font-weight:700;font-size:1rem;margin-bottom:4px;color:var(--text);">{{ selectedTask.title }}</div>
         <div style="display:flex;gap:1rem;font-size:0.82rem;color:var(--text-3);flex-wrap:wrap;">
           <span>Category: <strong style="color:var(--text);">{{ selectedTask.category }}</strong></span>
-          <span>Client Budget: <strong class="text-brand">${{ selectedTask.budget }}</strong></span>
+          <span>Client Budget: <strong class="text-brand">{{ selectedTask.budget | money:0 }}</strong></span>
           <span ng-if="selectedTask.urgency === 'urgent'" style="color:var(--danger);font-weight:700;">🔥 Urgent</span>
         </div>
       </div>
@@ -229,8 +229,8 @@
                  placeholder="{{ selectedTask.budget }}" />
         </div>
         <div class="form-hint" style="margin-top:4px;font-size:0.8rem;color:var(--text-3);">
-          Platform Fee (10%): -${{ (applyData.bidAmount * 0.10) | number:2 }} ·
-          You will receive: <strong class="text-brand">${{ (applyData.bidAmount * 0.90) | number:2 }}</strong>
+          Platform Fee (10%): -{{ (applyData.bidAmount * 0.10) | money:2 }} ·
+          You will receive: <strong class="text-brand">{{ (applyData.bidAmount * 0.90) | money:2 }}</strong>
         </div>
       </div>
 

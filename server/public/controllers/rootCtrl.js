@@ -22,6 +22,25 @@ function($scope, $rootScope, $location, $window, MessageService) {
 
   $scope.notifications = [];
 
+  // Currency Selector
+  $scope.currencyDropdownOpen = false;
+  $scope.toggleCurrencyDropdown = function($event) {
+    if ($event) {
+      $event.preventDefault();
+      $event.stopPropagation();
+    }
+    $scope.currencyDropdownOpen = !$scope.currencyDropdownOpen;
+    $scope.showUserMenu = false;
+    $scope.showNotifications = false;
+    $scope.mobileMenuOpen = false;
+  };
+
+  $scope.selectCurrency = function(code, $event) {
+    if ($event) $event.stopPropagation();
+    $rootScope.setCurrency(code);
+    $scope.currencyDropdownOpen = false;
+  };
+
   // Scroll detection for navbar shadow
   angular.element($window).bind('scroll', function() {
     $scope.$apply(function() {

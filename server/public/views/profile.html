@@ -29,7 +29,7 @@
 
           <div ng-if="profile.user_type === 'freelancer' && profile.hourly_rate"
                style="background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:50px;font-size:0.85rem;font-weight:700;">
-            💵 ${{ profile.hourly_rate }}/hr
+            💵 {{ profile.hourly_rate | money:0 }}/hr
           </div>
         </div>
 
@@ -125,7 +125,7 @@
             </div>
             <div class="flex-between" ng-if="profile.user_type === 'freelancer'">
               <span style="font-size:0.875rem;color:var(--text-3);">Hourly Rate</span>
-              <span style="font-weight:700;color:var(--brand);">{{ profile.hourly_rate ? ('$' + profile.hourly_rate + '/hr') : 'Not set' }}</span>
+              <span style="font-weight:700;color:var(--brand);">{{ profile.hourly_rate ? ((profile.hourly_rate | money:0) + '/hr') : 'Not set' }}</span>
             </div>
             <div class="flex-between" ng-if="profile.user_type === 'freelancer'">
               <span style="font-size:0.875rem;color:var(--text-3);">Tasks Completed</span>
@@ -251,7 +251,7 @@
               <span ng-repeat="s in [1,2,3,4,5]">{{ s <= r.rating ? '★' : '☆' }}</span>
             </span>
             <strong style="font-size:0.9rem;color:var(--text);">{{ r.rating }}.0</strong>
-            <span style="font-size:0.8rem;color:var(--text-3);">· Paid: ${{ r.budget }}</span>
+            <span style="font-size:0.8rem;color:var(--text-3);">· Paid: {{ r.budget | money:0 }}</span>
           </div>
 
           <p ng-if="r.comment" style="font-size:0.88rem;color:var(--text-2);line-height:1.5;margin:0;font-style:italic;">

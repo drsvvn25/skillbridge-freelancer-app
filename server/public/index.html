@@ -55,7 +55,33 @@
           <a href="#!/login" class="btn btn-outline-nav">Log In</a>
           <a href="#!/register" class="btn btn-primary-nav">Sign Up Free</a>
         </div>
-<!-- Dark / Light Mode Toggle -->
+<!-- Currency Selector (USD, INR, AED Dirham) -->
+        <div class="currency-dropdown" style="position:relative;">
+          <button class="currency-btn" ng-click="toggleCurrencyDropdown($event)" title="Change Currency">
+            <span class="currency-flag">{{ currentCurrency === 'INR' ? '🇮🇳' : (currentCurrency === 'AED' ? '🇦🇪' : '🇺🇸') }}</span>
+            <span class="currency-code">{{ currentCurrency }}</span>
+            <span class="dropdown-arrow">▾</span>
+          </button>
+          <div class="dropdown-menu currency-menu" ng-show="currencyDropdownOpen" ng-click="$event.stopPropagation()" style="width:170px;">
+            <div class="dropdown-header" style="padding:0.6rem 0.85rem;font-size:0.75rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.04em;">
+              Select Currency
+            </div>
+            <button class="dropdown-item" ng-class="{'active-curr': currentCurrency === 'USD'}" ng-click="selectCurrency('USD', $event)">
+              <span>🇺🇸</span>
+              <span><strong>USD</strong> ($)</span>
+            </button>
+            <button class="dropdown-item" ng-class="{'active-curr': currentCurrency === 'INR'}" ng-click="selectCurrency('INR', $event)">
+              <span>🇮🇳</span>
+              <span><strong>INR</strong> (₹)</span>
+            </button>
+            <button class="dropdown-item" ng-class="{'active-curr': currentCurrency === 'AED'}" ng-click="selectCurrency('AED', $event)">
+              <span>🇦🇪</span>
+              <span><strong>AED</strong> (Dirham)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Dark / Light Mode Toggle -->
         <button class="theme-toggle-btn" ng-click="toggleTheme()" title="{{ darkMode ? 'Switch to Light' : 'Switch to Dark' }}" ng-if="isLoggedIn()">
           <span>{{ darkMode ? '&#9728;&#65039;' : '&#127769;' }}</span>
           <span class="toggle-label">{{ darkMode ? 'Light' : 'Dark' }}</span>

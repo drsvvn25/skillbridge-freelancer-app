@@ -13,7 +13,7 @@
       <div class="card" style="padding-top:2rem;order:1;" ng-if="leaders.length >= 2">
         <div style="width:60px;height:60px;border-radius:50%;background:#9ca3af;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800;margin:0 auto 0.75rem;">{{ leaders[1].full_name[0] }}</div>
         <div style="font-weight:700;font-size:0.9rem;">{{ leaders[1].full_name }}</div>
-        <div style="font-size:1.2rem;font-weight:800;color:var(--text);margin:0.3rem 0;">${{ leaders[1].total_earned | number:0 }}</div>
+        <div style="font-size:1.2rem;font-weight:800;color:var(--text);margin:0.3rem 0;">{{ leaders[1].total_earned | money }}</div>
         <div style="font-size:0.75rem;color:var(--text-3);">{{ leaders[1].total_tasks_completed }} tasks</div>
         <div style="margin-top:0.5rem;font-size:1.5rem;">🥈</div>
       </div>
@@ -22,7 +22,7 @@
         <div style="width:72px;height:72px;border-radius:50%;background:var(--gradient);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;margin:0 auto 0.75rem;">{{ leaders[0].full_name[0] }}</div>
         <div style="font-weight:800;font-size:1rem;">{{ leaders[0].full_name }}</div>
         <span class="badge badge-premium" ng-if="leaders[0].is_premium" style="margin:4px auto;">🌟 Premium</span>
-        <div style="font-size:1.5rem;font-weight:800;color:var(--brand);margin:0.3rem 0;">${{ leaders[0].total_earned | number:0 }}</div>
+        <div style="font-size:1.5rem;font-weight:800;color:var(--brand);margin:0.3rem 0;">{{ leaders[0].total_earned | money }}</div>
         <div style="font-size:0.75rem;color:var(--text-3);">{{ leaders[0].total_tasks_completed }} tasks</div>
         <div style="margin-top:0.5rem;font-size:2rem;">🥇</div>
       </div>
@@ -30,7 +30,7 @@
       <div class="card" style="padding-top:2rem;order:2;" ng-if="leaders.length >= 3">
         <div style="width:60px;height:60px;border-radius:50%;background:#b45309;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:800;margin:0 auto 0.75rem;">{{ leaders[2].full_name[0] }}</div>
         <div style="font-weight:700;font-size:0.9rem;">{{ leaders[2].full_name }}</div>
-        <div style="font-size:1.2rem;font-weight:800;color:var(--text);margin:0.3rem 0;">${{ leaders[2].total_earned | number:0 }}</div>
+        <div style="font-size:1.2rem;font-weight:800;color:var(--text);margin:0.3rem 0;">{{ leaders[2].total_earned | money }}</div>
         <div style="font-size:0.75rem;color:var(--text-3);">{{ leaders[2].total_tasks_completed }} tasks</div>
         <div style="margin-top:0.5rem;font-size:1.5rem;">🥉</div>
       </div>
@@ -60,7 +60,7 @@
               <span ng-repeat="s in leader.skills | limitTo:3" style="margin-right:0.35rem;">{{ s }}</span>
             </div>
           </div>
-          <div class="earn-amount">${{ leader.total_earned | number:0 }}</div>
+          <div class="earn-amount">{{ leader.total_earned | money }}</div>
         </div>
       </div>
     </div>

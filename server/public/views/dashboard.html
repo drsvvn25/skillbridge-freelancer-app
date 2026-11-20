@@ -13,10 +13,37 @@
   </div>
 
   <div class="stats-row">
-    <div class="stat-card"><div class="stat-value">{{ stats.total }}</div><div class="stat-label">Total Tasks</div></div>
-    <div class="stat-card blue"><div class="stat-value">{{ stats.active }}</div><div class="stat-label">In Progress</div></div>
-    <div class="stat-card"><div class="stat-value" style="color:var(--brand);">{{ stats.completed }}</div><div class="stat-label">Completed</div></div>
-    <div class="stat-card red" ng-if="isFreelancer()"><div class="stat-value">-${{ stats.totalPenalty }}</div><div class="stat-label">Total Penalties</div></div>
+    <!-- Client View: Total Spent, Active Projects, Hired Freelancers -->
+    <div class="stat-card" ng-if="isClient()">
+      <div class="stat-value" style="color:var(--brand);">{{ (stats.total_spent || 0) | money:0 }}</div>
+      <div class="stat-label">Total Spent</div>
+    </div>
+    <div class="stat-card blue" ng-if="isClient()">
+      <div class="stat-value">{{ stats.active }}</div>
+      <div class="stat-label">Active Projects</div>
+    </div>
+    <div class="stat-card" ng-if="isClient()">
+      <div class="stat-value">{{ stats.hired_freelancers || stats.completed }}</div>
+      <div class="stat-label">Hired Freelancers</div>
+    </div>
+
+    <!-- Freelancer View: Total Earned, Active Tasks, Completed Tasks, Penalties -->
+    <div class="stat-card" ng-if="isFreelancer()">
+      <div class="stat-value" style="color:var(--brand);">{{ (stats.total_earned || 0) | money:0 }}</div>
+      <div class="stat-label">Total Earned</div>
+    </div>
+    <div class="stat-card blue" ng-if="isFreelancer()">
+      <div class="stat-value">{{ stats.active }}</div>
+      <div class="stat-label">Active Tasks</div>
+    </div>
+    <div class="stat-card" ng-if="isFreelancer()">
+      <div class="stat-value">{{ stats.completed }}</div>
+      <div class="stat-label">Completed Tasks</div>
+    </div>
+    <div class="stat-card red" ng-if="isFreelancer() && stats.totalPenalty > 0">
+      <div class="stat-value">-{{ stats.totalPenalty | money:0 }}</div>
+      <div class="stat-label">Total Penalties</div>
+    </div>
   </div>
 
   <!-- Tabs -->
@@ -94,19 +121,19 @@
       <!-- Budget / Penalty Row -->
       <div style="display:flex;gap:1.5rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
         <div>
-          <span style="font-size:1.25rem;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;">${{ task.budget }}</span>
+          <span style="font-size:1.25rem;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;">{{ task.budget | money:0 }}</span>
           <span style="font-size:0.78rem;color:var(--text-3);margin-left:6px;">budget</span>
         </div>
         <div ng-if="task.commission_amount">
-          <span style="font-size:0.8rem;color:var(--text-3);">Commission: <strong>-${{ task.commission_amount }}</strong></span>
+          <span style="font-size:0.8rem;color:var(--text-3);">Commission: <strong>-{{ task.commission_amount | money:2 }}</strong></span>
         </div>
         <div ng-if="task.penalty_applied > 0" class="penalty-alert" style="padding:4px 10px;margin:0;">
           <span class="penalty-icon" style="font-size:1rem;">⚠️</span>
-          <span class="penalty-text" style="font-size:0.8rem;">Penalty: -${{ task.penalty_applied }}</span>
+          <span class="penalty-text" style="font-size:0.8rem;">Penalty: -{{ task.penalty_applied | money:2 }}</span>
         </div>
         <div ng-if="task.status === 'in_progress'" style="margin-left:auto;">
           <span style="font-size:0.78rem;color:var(--text-3);">Net Payout: </span>
-          <strong class="text-brand" style="font-size:1rem;">${{ task.budget - (task.commission_amount||0) - (task.penalty_applied||0) | number:2 }}</strong>
+          <strong class="text-brand" style="font-size:1rem;">{{ (task.budget - (task.commission_amount||0) - (task.penalty_applied||0)) | money:2 }}</strong>
         </div>
       </div>
 
@@ -144,7 +171,7 @@
                    ng-if="phase.status==='active' && getMinutesLeft(phase) <= 0">
                 <span class="penalty-icon">⚠️</span>
                 <span class="penalty-text">
-                  OVERDUE — Penalty: $5 per 30-minute block deducted from your payout automatically
+                  OVERDUE — Penalty: {{ 5 | money:0 }} per 30-minute block deducted from your payout automatically
                 </span>
               </div>
 
@@ -229,8 +256,8 @@
               </div>
             </div>
             <div style="text-align:right;">
-              <div class="bid-amount" ng-if="app.bid_amount">${{ app.bid_amount }}</div>
-              <div class="bid-amount" ng-if="!app.bid_amount">${{ task.budget }}</div>
+              <div class="bid-amount" ng-if="app.bid_amount">{{ app.bid_amount | money:0 }}</div>
+              <div class="bid-amount" ng-if="!app.bid_amount">{{ task.budget | money:0 }}</div>
               <button class="btn btn-primary btn-sm" ng-click="acceptApplicant(app, task)" style="margin-top:6px;">
                 Hire →
               </button>
@@ -266,7 +293,7 @@
             ⭐ Review & Rate
           </h3>
           <p style="font-size:0.82rem;color:var(--text-3);margin-top:2px;">
-            {{ isClient() ? 'Rate the freelancer's quality of work and communication' : 'Rate the client's clarity and collaboration' }}
+            {{ isClient() ? "Rate the freelancer's quality of work and communication" : "Rate the client's clarity and collaboration" }}
           </p>
         </div>
         <button class="btn btn-ghost btn-sm" ng-click="closeReviewModal()" style="font-size:1.2rem;line-height:1;padding:4px 8px;">✕</button>
@@ -275,7 +302,7 @@
       <div style="background:var(--surface-2);padding:0.75rem 1rem;border-radius:8px;margin-bottom:1.5rem;">
         <div style="font-weight:600;font-size:0.95rem;">{{ reviewModal.task.title }}</div>
         <div style="font-size:0.8rem;color:var(--text-3);margin-top:2px;">
-          Budget: <strong>${{ reviewModal.task.budget }}</strong> · Category: {{ reviewModal.task.category }}
+          Budget: <strong>{{ reviewModal.task.budget | money:0 }}</strong> · Category: {{ reviewModal.task.category }}
         </div>
       </div>
 

@@ -1667,3 +1667,37 @@ body.dark-mode .escrow-badge {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-6px); }
 }
+
+/* == Currency Selector Menu Styles =============================== */
+.currency-btn {
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  border-radius: 50px;
+  padding: 6px 12px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+.currency-btn:hover {
+  background: var(--border);
+  transform: scale(1.05);
+}
+.currency-menu {
+  top: calc(100% + 8px);
+  right: 0;
+}
+.currency-menu .dropdown-item.active-curr {
+  background: var(--brand-light);
+  color: var(--brand);
+  font-weight: 700;
+}
+body.dark-mode .currency-menu .dropdown-item.active-curr {
+  background: rgba(34, 211, 126, 0.15);
+  color: #22d37e;
+}

@@ -218,10 +218,47 @@ angular.module('FreelancerApp', ['ngRoute', 'ngAnimate', 'ngSanitize'])
     return str.length > len ? str.substring(0, len) + '…' : str;
   };
 })
+.filter('money', ['$rootScope', function($rootScope) {
+  return function(amountUSD, decimals) {
+    if (amountUSD === undefined || amountUSD === null || isNaN(amountUSD)) return '';
+    var num = parseFloat(amountUSD);
+    var curr = $rootScope.currentCurrency || 'USD';
+    var rate = ($rootScope.currencyRates && $rootScope.currencyRates[curr]) ? $rootScope.currencyRates[curr].rate : 1.0;
+    var symbol = ($rootScope.currencyRates && $rootScope.currencyRates[curr]) ? $rootScope.currencyRates[curr].symbol : '$';
+    var converted = num * rate;
+    var dec = (decimals !== undefined) ? decimals : (curr === 'INR' ? 0 : 2);
+    return symbol + converted.toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  };
+}])
 
 // ─── Root Scope Setup ─────────────────────────────────────
 .run(['$rootScope', '$location', 'AuthService', function($rootScope, $location, AuthService) {
   $rootScope.currentUser = AuthService.getUser();
+  // Currency Management (USD, INR, AED Dirham)
+  $rootScope.currencyRates = {
+    'USD': { code: 'USD', symbol: '$', rate: 1.0, label: 'USD ($)' },
+    'INR': { code: 'INR', symbol: '₹', rate: 86.5, label: 'INR (₹)' },
+    'AED': { code: 'AED', symbol: 'AED ', rate: 3.67, label: 'AED (Dirham)' }
+  };
+  $rootScope.currentCurrency = localStorage.getItem('skillbridge-currency') || 'USD';
+
+  $rootScope.setCurrency = function(code) {
+    if ($rootScope.currencyRates[code]) {
+      $rootScope.currentCurrency = code;
+      localStorage.setItem('skillbridge-currency', code);
+    }
+  };
+
+  $rootScope.formatCurrency = function(amountUSD, decimals) {
+    if (amountUSD === undefined || amountUSD === null || isNaN(amountUSD)) return '';
+    var num = parseFloat(amountUSD);
+    var curr = $rootScope.currentCurrency || 'USD';
+    var rate = $rootScope.currencyRates[curr].rate;
+    var symbol = $rootScope.currencyRates[curr].symbol;
+    var converted = num * rate;
+    var dec = (decimals !== undefined) ? decimals : (curr === 'INR' ? 0 : 2);
+    return symbol + converted.toLocaleString(undefined, { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  };
 
   // Avatar colors
   var colors = ['#1dbf73','#3b82f6','#8b5cf6','#f59e0b','#ef4444','#10b981','#06b6d4'];

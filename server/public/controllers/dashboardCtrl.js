@@ -61,7 +61,7 @@ function($scope, $rootScope, $http, $location, $anchorScroll, $timeout, TaskServ
     tasks.forEach(t => {
       if (t.status === 'in_progress') $scope.activities.push({ color:'blue', text:`"${t.title}" is in progress — Phase ${t.current_phase_index+1}`, time:'active' });
       if (t.status === 'completed')   $scope.activities.push({ color:'green', text:`"${t.title}" was completed successfully!`, time:'done' });
-      if (t.penalty_applied > 0)      $scope.activities.push({ color:'red',   text:`$${t.penalty_applied} penalty applied on "${t.title}"`, time:'penalty' });
+      if (t.penalty_applied > 0)      $scope.activities.push({ color:'red',   text: 'Penalty applied on "' + t.title + '"', time:'penalty' });
     });
   }
 
@@ -82,6 +82,9 @@ function($scope, $rootScope, $http, $location, $anchorScroll, $timeout, TaskServ
       $scope.stats.active    = res.data.filter(t => t.status === 'in_progress').length;
       $scope.stats.completed = res.data.filter(t => t.status === 'completed').length;
       $scope.stats.totalPenalty = res.data.reduce((s, t) => s + (t.penalty_applied || 0), 0);
+      $scope.stats.total_spent = res.data.filter(t => t.status === 'completed' || t.status === 'in_progress').reduce((s, t) => s + (t.budget || 0), 0);
+      $scope.stats.total_earned = res.data.filter(t => t.status === 'completed').reduce((s, t) => s + Math.max(0, (t.budget || 0) - (t.commission_amount || 0) - (t.penalty_applied || 0)), 0);
+      $scope.stats.hired_freelancers = res.data.filter(t => t.freelancer_id).length;
       buildActivity(res.data);
 
       // Fetch submissions for active tasks
