@@ -6,19 +6,57 @@ const auth = require('../middleware/auth');
 const { getPhasesForCategory } = require('../utils/phaseTemplates');
 const { sendNewTaskEmail } = require('../utils/emailService');
 
-// ── GET /stats (dashboard summary) ───────────────────────
+// ── GET /stats (role-tailored dashboard summary) ─────────
 router.get('/stats', auth, async (req, res) => {
   try {
     const userId = req.user._id;
     const userType = req.user.user_type;
-    const filter = userType === 'client' ? { client_id: userId } : { freelancer_id: userId };
-    const tasks = await Task.find(filter);
-    res.json({
-      total: tasks.length,
-      active: tasks.filter(t => t.status === 'in_progress').length,
-      completed: tasks.filter(t => t.status === 'completed').length,
-      earned: tasks.filter(t => t.status === 'completed').reduce((s, t) => s + (t.budget - (t.penalty_applied||0)), 0),
-    });
+    const TaskApplication = require('../models/TaskApplication');
+
+    if (userType === 'client') {
+      const clientTasks = await Task.find({ client_id: userId });
+      const totalSpent = clientTasks
+        .filter(t => t.status === 'completed')
+        .reduce((sum, t) => sum + (t.budget || 0), 0);
+      const activeProjects = clientTasks.filter(t => t.status === 'in_progress').length;
+      const hiredFreelancersSet = new Set();
+      clientTasks.forEach(t => {
+        if (t.freelancer_id && (t.status === 'in_progress' || t.status === 'completed')) {
+          hiredFreelancersSet.add(t.freelancer_id.toString());
+        }
+      });
+      const openJobs = clientTasks.filter(t => t.status === 'open').length;
+      return res.json({
+        user_type: 'client',
+        total_spent: totalSpent,
+        active_projects: activeProjects,
+        hired_freelancers: hiredFreelancersSet.size,
+        open_jobs: openJobs,
+        total: clientTasks.length,
+        completed: clientTasks.filter(t => t.status === 'completed').length
+      });
+    } else {
+      const freelancerTasks = await Task.find({ freelancer_id: userId });
+      const totalEarned = freelancerTasks
+        .filter(t => t.status === 'completed')
+        .reduce((sum, t) => sum + Math.max(0, (t.budget || 0) - (t.commission_amount || 0) - (t.penalty_applied || 0)), 0);
+      const activeTasks = freelancerTasks.filter(t => t.status === 'in_progress').length;
+      const completedTasks = freelancerTasks.filter(t => t.status === 'completed').length;
+      const totalPenalty = freelancerTasks.reduce((sum, t) => sum + (t.penalty_applied || 0), 0);
+      const pendingProposalsCount = await TaskApplication.countDocuments({
+        freelancer_id: userId,
+        status: 'pending'
+      });
+      return res.json({
+        user_type: 'freelancer',
+        total_earned: totalEarned,
+        active_tasks: activeTasks,
+        pending_proposals: pendingProposalsCount,
+        completed: completedTasks,
+        total_penalty: totalPenalty,
+        total: freelancerTasks.length
+      });
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -105,6 +143,9 @@ router.get('/', auth, async (req, res) => {
 
     if (req.user.user_type === 'freelancer') {
       filter.$and.push({ deleted_by_freelancer: { $ne: true } });
+    }
+    if (req.user.user_type === 'client') {
+      filter.$and.push({ deleted_by_client: { $ne: true } });
     }
 
     if (search) {
@@ -249,28 +290,126 @@ router.patch('/:id/phases', auth, async (req, res) => {
   }
 });
 
-// Delete Task (Freelancer side — completed or cancelled tasks only)
+// Delete / Remove Task (Both Client & Freelancer side — completed, cancelled, or open tasks)
 router.delete('/:id', auth, async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) return res.status(404).json({ message: 'Task not found' });
 
-    const isFreelancer = task.freelancer_id && task.freelancer_id.toString() === req.user._id.toString();
+    const userIdStr = req.user._id.toString();
+    const isClient = task.client_id && task.client_id.toString() === userIdStr;
+    const isFreelancer = task.freelancer_id && task.freelancer_id.toString() === userIdStr;
 
-    if (!isFreelancer) {
-      return res.status(403).json({ message: 'Only the assigned freelancer can delete this task from their dashboard' });
+    if (!isClient && !isFreelancer) {
+      return res.status(403).json({ message: 'You are not authorized to remove this task' });
     }
 
-    if (task.status !== 'completed' && task.status !== 'cancelled') {
-      return res.status(400).json({ message: 'Delete option is only available for completed or cancelled tasks' });
+    if (task.status === 'in_progress') {
+      return res.status(400).json({ message: 'Active in-progress contracts cannot be removed. Please complete or cancel the task first.' });
     }
 
-    task.deleted_by_freelancer = true;
+    if (isClient) {
+      task.deleted_by_client = true;
+    }
+    if (isFreelancer) {
+      task.deleted_by_freelancer = true;
+    }
+
     await task.save();
-    res.json({ message: 'Task deleted successfully from freelancer dashboard' });
+    res.json({ message: 'Task removed successfully from your dashboard' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
+// POST /:id/review — Submit review (client rates freelancer OR freelancer rates client)
+router.post('/:id/review', auth, async (req, res) => {
+  try {
+    const { rating, comment } = req.body;
+    const numRating = Number(rating);
+    if (!numRating || numRating < 1 || numRating > 5) {
+      return res.status(400).json({ message: 'Rating must be an integer between 1 and 5' });
+    }
+
+    const task = await Task.findById(req.params.id);
+    if (!task) return res.status(404).json({ message: 'Task not found' });
+
+    if (task.status !== 'completed') {
+      return res.status(400).json({ message: 'Reviews can only be submitted for completed tasks' });
+    }
+
+    const userIdStr = req.user._id.toString();
+    const isClient = task.client_id && task.client_id.toString() === userIdStr;
+    const isFreelancer = task.freelancer_id && task.freelancer_id.toString() === userIdStr;
+
+    if (!isClient && !isFreelancer) {
+      return res.status(403).json({ message: 'You are not a participant in this task' });
+    }
+
+    let targetUserId = null;
+    if (isClient) {
+      if (task.review_by_client && task.review_by_client.rating) {
+        return res.status(400).json({ message: 'You have already reviewed this task' });
+      }
+      task.review_by_client = {
+        rating: Math.round(numRating),
+        comment: (comment || '').trim(),
+        created_at: new Date()
+      };
+      targetUserId = task.freelancer_id;
+    } else {
+      if (task.review_by_freelancer && task.review_by_freelancer.rating) {
+        return res.status(400).json({ message: 'You have already reviewed this task' });
+      }
+      task.review_by_freelancer = {
+        rating: Math.round(numRating),
+        comment: (comment || '').trim(),
+        created_at: new Date()
+      };
+      targetUserId = task.client_id;
+    }
+
+    await task.save();
+
+    // Recalculate recipient user's dynamic rating based on all reviews
+    if (targetUserId) {
+      const targetUser = await User.findById(targetUserId);
+      if (targetUser) {
+        if (targetUser.user_type === 'freelancer') {
+          const tasksReviewed = await Task.find({
+            freelancer_id: targetUserId,
+            'review_by_client.rating': { $exists: true, $ne: null }
+          }).select('review_by_client');
+
+          if (tasksReviewed.length > 0) {
+            const sum = tasksReviewed.reduce((acc, t) => acc + (t.review_by_client ? t.review_by_client.rating : 0), 0);
+            targetUser.rating = Math.round((sum / tasksReviewed.length) * 10) / 10;
+          }
+        } else {
+          const tasksReviewed = await Task.find({
+            client_id: targetUserId,
+            'review_by_freelancer.rating': { $exists: true, $ne: null }
+          }).select('review_by_freelancer');
+
+          if (tasksReviewed.length > 0) {
+            const sum = tasksReviewed.reduce((acc, t) => acc + (t.review_by_freelancer ? t.review_by_freelancer.rating : 0), 0);
+            targetUser.rating = Math.round((sum / tasksReviewed.length) * 10) / 10;
+          }
+        }
+        await targetUser.save();
+      }
+    }
+
+    res.json({
+      message: 'Review submitted successfully',
+      task,
+      review: isClient ? task.review_by_client : task.review_by_freelancer
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
 module.exports = router;
+

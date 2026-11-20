@@ -118,6 +118,9 @@ angular.module('FreelancerApp', ['ngRoute', 'ngAnimate', 'ngSanitize'])
     },
     delete: function(id) {
       return $http.delete('/api/tasks/' + id);
+    },
+    submitReview: function(taskId, rating, comment) {
+      return $http.post('/api/tasks/' + taskId + '/review', { rating: rating, comment: comment });
     }
   };
 }])
@@ -189,6 +192,15 @@ angular.module('FreelancerApp', ['ngRoute', 'ngAnimate', 'ngSanitize'])
     },
     getLeaderboard: function() {
       return $http.get('/api/users/leaderboard');
+    },
+    getReviews: function() {
+      return $http.get('/api/users/reviews');
+    },
+    addPortfolioItem: function(item) {
+      return $http.post('/api/users/portfolio', item);
+    },
+    deletePortfolioItem: function(itemId) {
+      return $http.delete('/api/users/portfolio/' + itemId);
     }
   };
 }])

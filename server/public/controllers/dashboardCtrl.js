@@ -183,4 +183,65 @@ function($scope, $rootScope, $http, $location, $anchorScroll, $timeout, TaskServ
         $rootScope.showToast((err.data && err.data.message) || 'Failed to delete task', true);
       });
   };
+  // ── Review & Rating Modal ──────────────────────────────
+  $scope.reviewModal = {
+    show: false,
+    task: null,
+    rating: 5,
+    hoverRating: 0,
+    comment: '',
+    submitting: false
+  };
+
+  $scope.openReviewModal = function(task) {
+    $scope.reviewModal.task = task;
+    $scope.reviewModal.rating = 5;
+    $scope.reviewModal.hoverRating = 0;
+    $scope.reviewModal.comment = '';
+    $scope.reviewModal.submitting = false;
+    $scope.reviewModal.show = true;
+  };
+
+  $scope.closeReviewModal = function() {
+    $scope.reviewModal.show = false;
+    $scope.reviewModal.task = null;
+  };
+
+  $scope.setRating = function(r) {
+    $scope.reviewModal.rating = r;
+  };
+
+  $scope.setHoverRating = function(r) {
+    $scope.reviewModal.hoverRating = r;
+  };
+
+  $scope.hasReviewed = function(task) {
+    if (!task) return false;
+    if ($rootScope.isClient()) {
+      return !!(task.review_by_client && task.review_by_client.rating);
+    } else {
+      return !!(task.review_by_freelancer && task.review_by_freelancer.rating);
+    }
+  };
+
+  $scope.getMyReview = function(task) {
+    if (!task) return null;
+    return $rootScope.isClient() ? task.review_by_client : task.review_by_freelancer;
+  };
+
+  $scope.submitReview = function() {
+    if (!$scope.reviewModal.task) return;
+    $scope.reviewModal.submitting = true;
+
+    TaskService.submitReview($scope.reviewModal.task._id, $scope.reviewModal.rating, $scope.reviewModal.comment)
+      .then(function(res) {
+        $rootScope.showToast('Thank you! Review & Rating submitted ⭐');
+        $scope.closeReviewModal();
+        loadDashboard(false);
+      })
+      .catch(function(err) {
+        $scope.reviewModal.submitting = false;
+        $rootScope.showToast((err.data && err.data.message) || 'Failed to submit review', true);
+      });
+  };
 }]);

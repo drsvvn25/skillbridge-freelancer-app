@@ -61,16 +61,16 @@
           <span class="toggle-label">{{ darkMode ? 'Light' : 'Dark' }}</span>
         </button>
         <!-- Notification Bell -->
-        <div class="nav-icon-btn" ng-if="isLoggedIn()" ng-click="toggleNotifications()" style="position:relative;">
+        <div class="nav-icon-btn" ng-if="isLoggedIn()" ng-click="toggleNotifications($event)" style="position:relative;">
           🔔
           <span class="notif-dot" ng-if="unreadCount > 0">{{ unreadCount }}</span>
         </div>
         <!-- User Avatar Dropdown -->
-        <div class="user-dropdown" ng-if="isLoggedIn()" ng-click="toggleUserMenu()">
+        <div class="user-dropdown" ng-if="isLoggedIn()" ng-click="toggleUserMenu($event)">
           <div class="avatar" ng-style="{'background': avatarColor}">{{ currentUser.full_name[0] }}</div>
           <span class="user-name-nav hide-sm">{{ currentUser.full_name.split(' ')[0] }}</span>
           <span class="dropdown-arrow">▾</span>
-          <div class="dropdown-menu" ng-show="showUserMenu">
+          <div class="dropdown-menu" ng-show="showUserMenu" ng-click="$event.stopPropagation()">
             <div class="dropdown-header">
               <div class="avatar-lg" ng-style="{'background': avatarColor}">{{ currentUser.full_name[0] }}</div>
               <div>
@@ -101,7 +101,7 @@
   </div>
 
   <!-- ── Notifications Panel ───────────────────────── -->
-  <div class="notif-panel" ng-show="showNotifications">
+  <div class="notif-panel" ng-show="showNotifications" ng-click="$event.stopPropagation()">
     <div class="notif-header">
       <strong>Notifications</strong>
       <button ng-click="showNotifications=false"

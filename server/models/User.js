@@ -1,6 +1,14 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
+const portfolioItemSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: { type: String, default: '' },
+  project_url: { type: String, default: '' },
+  image_url: { type: String, default: '' },
+  created_at: { type: Date, default: Date.now }
+}, { _id: true });
+
 const userSchema = new mongoose.Schema({
   email: {
     type: String,
@@ -23,6 +31,14 @@ const userSchema = new mongoose.Schema({
     enum: ['client', 'freelancer'],
     required: true
   },
+  professional_title: {
+    type: String,
+    default: ''
+  },
+  hourly_rate: {
+    type: Number,
+    default: 0
+  },
   is_premium: {
     type: Boolean,
     default: false
@@ -33,6 +49,10 @@ const userSchema = new mongoose.Schema({
   },
   skills: {
     type: [String],
+    default: []
+  },
+  portfolio: {
+    type: [portfolioItemSchema],
     default: []
   },
   rating: {

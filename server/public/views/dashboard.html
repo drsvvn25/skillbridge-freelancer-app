@@ -69,13 +69,24 @@
                   'badge-cancelled': task.status==='cancelled'
                 }">{{ task.status | replace:'_':' ' }}</span>
           <a href="#!/messages/{{ task._id }}" class="btn btn-outline btn-sm" ng-if="task.status==='in_progress'">💬 Chat</a>
+          <!-- Rate & Review Button for Completed Tasks -->
+          <button class="btn btn-primary btn-sm"
+                  style="background:#f59e0b;border-color:#f59e0b;color:#fff;"
+                  ng-if="task.status==='completed' && !hasReviewed(task)"
+                  ng-click="openReviewModal(task)">
+            ⭐ Leave Review
+          </button>
+          <span class="badge" style="background:var(--brand-light);color:var(--brand);font-weight:600;"
+                ng-if="task.status==='completed' && hasReviewed(task)">
+            ⭐ Reviewed ({{ getMyReview(task).rating }}/5)
+          </span>
           <button class="btn btn-ghost btn-sm" ng-if="isClient() && task.status==='in_progress'" ng-click="cancelTask(task)">Cancel</button>
           <button class="btn btn-outline btn-sm"
                   style="border-color:#ef4444;color:#ef4444;"
-                  ng-if="isFreelancer() && (task.status==='completed' || task.status==='cancelled')"
+                  ng-if="task.status !== 'in_progress'"
                   ng-click="deleteTask(task)"
-                  title="Delete this task from your dashboard">
-            🗑️ Delete Task
+                  title="Remove this task from your dashboard">
+            🗑️ Remove
           </button>
         </div>
       </div>
@@ -245,4 +256,74 @@
     </div>
   </div>
 
+
+  <!-- ── 5-Star Interactive Review Modal (Upwork / Freelancer style) ── -->
+  <div class="modal-backdrop" ng-if="reviewModal.show" ng-click="closeReviewModal()">
+    <div class="modal-content" ng-click="$event.stopPropagation()" style="max-width:480px;border-radius:16px;padding:2rem;">
+      <div class="flex-between" style="margin-bottom:1.25rem;">
+        <div>
+          <h3 style="font-size:1.25rem;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;">
+            ⭐ Review & Rate
+          </h3>
+          <p style="font-size:0.82rem;color:var(--text-3);margin-top:2px;">
+            {{ isClient() ? 'Rate the freelancer's quality of work and communication' : 'Rate the client's clarity and collaboration' }}
+          </p>
+        </div>
+        <button class="btn btn-ghost btn-sm" ng-click="closeReviewModal()" style="font-size:1.2rem;line-height:1;padding:4px 8px;">✕</button>
+      </div>
+
+      <div style="background:var(--surface-2);padding:0.75rem 1rem;border-radius:8px;margin-bottom:1.5rem;">
+        <div style="font-weight:600;font-size:0.95rem;">{{ reviewModal.task.title }}</div>
+        <div style="font-size:0.8rem;color:var(--text-3);margin-top:2px;">
+          Budget: <strong>${{ reviewModal.task.budget }}</strong> · Category: {{ reviewModal.task.category }}
+        </div>
+      </div>
+
+      <!-- Star Rating Interactive Selector -->
+      <div style="text-align:center;margin-bottom:1.5rem;">
+        <div style="font-size:0.85rem;color:var(--text-2);margin-bottom:8px;font-weight:600;">Overall Rating</div>
+        <div style="display:flex;justify-content:center;gap:8px;cursor:pointer;">
+          <span ng-repeat="star in [1, 2, 3, 4, 5]"
+                ng-click="setRating(star)"
+                ng-mouseenter="setHoverRating(star)"
+                ng-mouseleave="setHoverRating(0)"
+                style="font-size:2.2rem;transition:transform 0.15s;user-select:none;"
+                ng-style="{'transform': (reviewModal.hoverRating >= star || (!reviewModal.hoverRating && reviewModal.rating >= star)) ? 'scale(1.15)' : 'scale(1)'}">
+            <span ng-if="reviewModal.hoverRating ? reviewModal.hoverRating >= star : reviewModal.rating >= star" style="color:#f59e0b;">★</span>
+            <span ng-if="!(reviewModal.hoverRating ? reviewModal.hoverRating >= star : reviewModal.rating >= star)" style="color:var(--border-dark);">☆</span>
+          </span>
+        </div>
+        <div style="font-size:0.85rem;font-weight:700;color:#f59e0b;margin-top:6px;">
+          {{ reviewModal.rating === 5 ? '5/5 — Exceptional Work!' :
+             reviewModal.rating === 4 ? '4/5 — Very Good' :
+             reviewModal.rating === 3 ? '3/5 — Average' :
+             reviewModal.rating === 2 ? '2/5 — Below Expectations' : '1/5 — Poor Experience' }}
+        </div>
+      </div>
+
+      <!-- Written Feedback -->
+      <div class="form-group" style="margin-bottom:1.5rem;">
+        <label class="form-label" style="font-weight:600;">Feedback / Testimonial (Optional)</label>
+        <textarea class="form-control"
+                  rows="3"
+                  ng-model="reviewModal.comment"
+                  placeholder="Share details about the communication, speed, and deliverables..."
+                  style="border-radius:10px;resize:vertical;"></textarea>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+        <button class="btn btn-outline" ng-click="closeReviewModal()" ng-disabled="reviewModal.submitting">
+          Cancel
+        </button>
+        <button class="btn btn-primary"
+                style="background:var(--brand);border-color:var(--brand);"
+                ng-click="submitReview()"
+                ng-disabled="reviewModal.submitting">
+          <span ng-if="!reviewModal.submitting">Submit Review & Rating</span>
+          <span ng-if="reviewModal.submitting">Submitting...</span>
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

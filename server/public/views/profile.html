@@ -2,67 +2,85 @@
   <div class="loading-wrap" ng-if="loading"><div class="spinner"></div></div>
 
   <div ng-if="!loading && profile">
-    <!-- Profile Header -->
-    <div class="profile-header">
+    <!-- Profile Header (Upwork Pro Style) -->
+    <div class="profile-header" style="position:relative;">
       <div class="profile-avatar">{{ getInitials(profile.full_name) }}</div>
       <div style="flex:1;">
-        <h1 style="font-size:1.6rem;font-weight:800;margin-bottom:0.25rem;">{{ profile.full_name }}</h1>
-        <div style="opacity:0.9;font-size:0.85rem;margin-bottom:0.5rem;">{{ profile.email }}</div>
-        <span class="role-badge" ng-class="profile.user_type" style="background:rgba(255,255,255,0.2);color:#fff;">{{ profile.user_type }}</span>
-        <span class="badge badge-premium" ng-if="profile.is_premium" style="margin-left:6px;">🌟 Premium</span>
-        <div class="profile-rating" ng-if="profile.user_type === 'freelancer'">
-          <span class="star">★</span>{{ profile.rating || 'New' }}
-          <span style="opacity:0.7;font-size:0.78rem;">· {{ profile.total_tasks_completed || 0 }} tasks completed</span>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <h1 style="font-size:1.6rem;font-weight:800;margin:0;">{{ profile.full_name }}</h1>
+          <span class="role-badge" ng-class="profile.user_type" style="background:rgba(255,255,255,0.2);color:#fff;">{{ profile.user_type }}</span>
+          <span class="badge badge-premium" ng-if="profile.is_premium">🌟 Premium</span>
         </div>
+
+        <!-- Professional Headline / Title -->
+        <div style="font-size:1rem;font-weight:600;color:rgba(255,255,255,0.92);margin-top:4px;" ng-if="profile.professional_title">
+          {{ profile.professional_title }}
+        </div>
+        <div style="font-size:0.85rem;color:rgba(255,255,255,0.7);margin-top:2px;">
+          {{ profile.email }}
+        </div>
+
+        <!-- Hourly Rate & Rating Row -->
+        <div style="display:flex;gap:1rem;align-items:center;margin-top:0.6rem;flex-wrap:wrap;">
+          <div class="profile-rating" ng-if="profile.user_type === 'freelancer'">
+            <span class="star">★</span>{{ profile.rating || 'New' }}
+            <span style="opacity:0.8;font-size:0.78rem;">· {{ profile.total_tasks_completed || 0 }} completed</span>
+          </div>
+
+          <div ng-if="profile.user_type === 'freelancer' && profile.hourly_rate"
+               style="background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:50px;font-size:0.85rem;font-weight:700;">
+            💵 ${{ profile.hourly_rate }}/hr
+          </div>
+        </div>
+
+        <!-- Skills Pills -->
         <div style="margin-top:0.75rem;display:flex;gap:0.4rem;flex-wrap:wrap;" ng-if="profile.skills && profile.skills.length > 0">
           <span class="skill-pill" ng-repeat="s in profile.skills">{{ s }}</span>
         </div>
       </div>
-      <button class="btn" style="background:rgba(255,255,255,0.15);color:#fff;border:1.5px solid rgba(255,255,255,0.3);" ng-click="startEdit()" ng-if="!editing">
-        ✏️ Edit
+
+      <button class="btn" style="background:rgba(255,255,255,0.15);color:#fff;border:1.5px solid rgba(255,255,255,0.3);align-self:flex-start;" ng-click="startEdit()" ng-if="!editing">
+        ✏️ Edit Profile
       </button>
     </div>
 
-    <!-- Info Cards -->
-    <div class="grid-2" ng-if="!editing">
-      <div class="card">
-        <div class="section-header">About Me</div>
-        <p style="font-size:0.9rem;color:var(--text-2);line-height:1.65;">{{ profile.bio || 'No bio added yet.' }}</p>
+    <!-- Edit Profile Form -->
+    <div class="card" ng-if="editing" style="margin-top:1.5rem;">
+      <h3 style="font-weight:700;margin-bottom:1.25rem;">Edit Professional Profile</h3>
+
+      <!-- Professional Title (Upwork standard) -->
+      <div class="form-group" ng-if="profile.user_type === 'freelancer'">
+        <label class="form-label" style="font-weight:600;">Professional Headline / Title</label>
+        <input class="form-control" type="text"
+               ng-model="editData.professional_title"
+               placeholder="e.g. Senior Full-Stack MERN Developer | UI/UX Designer" />
+        <div class="form-hint">A concise title that appears prominently at the top of your profile.</div>
       </div>
-      <div class="card">
-        <div class="section-header">Account Stats</div>
-        <div style="display:flex;flex-direction:column;gap:0.75rem;">
-          <div class="flex-between">
-            <span style="font-size:0.875rem;color:var(--text-3);">Member since</span>
-            <span style="font-weight:600;font-size:0.875rem;">{{ profile.created_at | date:'MMM yyyy' }}</span>
-          </div>
-          <div class="flex-between">
-            <span style="font-size:0.875rem;color:var(--text-3);">Account type</span>
-            <span class="role-badge" ng-class="profile.user_type">{{ profile.user_type }}</span>
-          </div>
-          <div class="flex-between" ng-if="profile.user_type === 'freelancer'">
-            <span style="font-size:0.875rem;color:var(--text-3);">Tasks Done</span>
-            <span style="font-weight:700;color:var(--brand);">{{ profile.total_tasks_completed || 0 }}</span>
-          </div>
-          <div class="flex-between" ng-if="profile.user_type === 'freelancer'">
-            <span style="font-size:0.875rem;color:var(--text-3);">Rating</span>
-            <span style="font-weight:700;color:var(--accent);">⭐ {{ profile.rating || 'No rating yet' }}</span>
-          </div>
+
+      <!-- Hourly Rate (USD) -->
+      <div class="form-group" ng-if="profile.user_type === 'freelancer'">
+        <label class="form-label" style="font-weight:600;">Hourly Rate (USD / hour)</label>
+        <div style="position:relative;max-width:200px;">
+          <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-weight:700;color:var(--text-3);">$</span>
+          <input class="form-control" type="number"
+                 style="padding-left:26px;font-weight:700;"
+                 ng-model="editData.hourly_rate"
+                 min="0"
+                 placeholder="35" />
         </div>
       </div>
-    </div>
 
-    <!-- Edit Form -->
-    <div class="card" ng-if="editing">
-      <h3 style="font-weight:700;margin-bottom:1.25rem;">Edit Profile</h3>
+      <!-- Bio / Summary -->
       <div class="form-group">
-        <label class="form-label">Bio</label>
-        <textarea class="form-control" ng-model="editData.bio" rows="4" placeholder="Tell others about yourself, your expertise and experience..."></textarea>
+        <label class="form-label" style="font-weight:600;">About Me / Overview</label>
+        <textarea class="form-control" ng-model="editData.bio" rows="4" placeholder="Detail your experience, tools, frameworks, and what makes your service stand out..."></textarea>
       </div>
+
+      <!-- Skills Editor -->
       <div class="form-group" ng-if="profile.user_type === 'freelancer'">
-        <label class="form-label">Skills</label>
+        <label class="form-label" style="font-weight:600;">Skills & Technologies</label>
         <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;">
-          <input class="form-control" type="text" ng-model="newSkill" placeholder="e.g. React, Python, Figma" ng-keydown="$event.keyCode===13 && ($event.preventDefault(), addSkill())" />
+          <input class="form-control" type="text" ng-model="newSkill" placeholder="e.g. React, Node.js, Python, AWS" ng-keydown="$event.keyCode===13 && ($event.preventDefault(), addSkill())" />
           <button class="btn btn-secondary" type="button" ng-click="addSkill()">+ Add</button>
         </div>
         <div class="skill-tags-wrap">
@@ -70,17 +88,225 @@
             {{ s }} <span ng-click="removeSkill($index)" style="cursor:pointer;margin-left:4px;font-weight:700;">✕</span>
           </span>
         </div>
-        <div class="form-hint" ng-if="editData.skills.length === 0">Add skills to appear in skill-matched task recommendations.</div>
       </div>
-      <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+
+      <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1.5rem;">
         <button class="btn btn-ghost" ng-click="cancelEdit()">Cancel</button>
         <button class="btn btn-primary" ng-click="saveProfile()">Save Changes ✓</button>
       </div>
     </div>
 
+    <!-- Navigation Tabs: Overview & Portfolio vs Verified Reviews -->
+    <div class="tabs" style="margin-top:1.5rem;" ng-if="!editing">
+      <button class="tab-btn" ng-class="{'active': activeTab === 'overview'}" ng-click="activeTab = 'overview'">
+        💼 Overview & Portfolio
+      </button>
+      <button class="tab-btn" ng-class="{'active': activeTab === 'reviews'}" ng-click="activeTab = 'reviews'">
+        ⭐ Client Reviews ({{ reviews.length }})
+      </button>
+    </div>
+
+    <!-- TAB 1: OVERVIEW & PORTFOLIO -->
+    <div ng-if="!editing && activeTab === 'overview'">
+      <!-- About Me & Stats Grid -->
+      <div class="grid-2" style="margin-top:1.25rem;">
+        <div class="card">
+          <div class="section-header">About Me</div>
+          <p style="font-size:0.9rem;color:var(--text-2);line-height:1.65;white-space:pre-line;">
+            {{ profile.bio || 'No bio provided yet. Click "Edit Profile" to write a summary.' }}
+          </p>
+        </div>
+        <div class="card">
+          <div class="section-header">Account Overview</div>
+          <div style="display:flex;flex-direction:column;gap:0.75rem;">
+            <div class="flex-between">
+              <span style="font-size:0.875rem;color:var(--text-3);">Member Since</span>
+              <span style="font-weight:600;font-size:0.875rem;">{{ profile.created_at | date:'MMM yyyy' }}</span>
+            </div>
+            <div class="flex-between" ng-if="profile.user_type === 'freelancer'">
+              <span style="font-size:0.875rem;color:var(--text-3);">Hourly Rate</span>
+              <span style="font-weight:700;color:var(--brand);">{{ profile.hourly_rate ? ('$' + profile.hourly_rate + '/hr') : 'Not set' }}</span>
+            </div>
+            <div class="flex-between" ng-if="profile.user_type === 'freelancer'">
+              <span style="font-size:0.875rem;color:var(--text-3);">Tasks Completed</span>
+              <span style="font-weight:700;color:var(--brand);">{{ profile.total_tasks_completed || 0 }}</span>
+            </div>
+            <div class="flex-between">
+              <span style="font-size:0.875rem;color:var(--text-3);">Rating</span>
+              <span style="font-weight:700;color:var(--accent);">⭐ {{ profile.rating ? (profile.rating + ' / 5.0') : 'No rating yet' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Freelancer Portfolio Showcase (Freelancer.in / Upwork Style) -->
+      <div class="card" style="margin-top:1.25rem;" ng-if="profile.user_type === 'freelancer'">
+        <div class="flex-between" style="margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;">
+          <div>
+            <div class="section-header" style="margin-bottom:0.25rem;">
+              🎨 Portfolio Showcase ({{ (profile.portfolio || []).length }})
+            </div>
+            <div style="font-size:0.8rem;color:var(--text-3);">
+              Demonstrate your work with project snapshots, live demos, and descriptions.
+            </div>
+          </div>
+          <button class="btn btn-outline btn-sm" ng-click="openAddPortfolio()">
+            + Add Project
+          </button>
+        </div>
+
+        <!-- Portfolio Empty State -->
+        <div class="empty-state" ng-if="!profile.portfolio || profile.portfolio.length === 0" style="padding:2rem 1rem;">
+          <span class="empty-icon" style="font-size:2rem;">📁</span>
+          <div class="empty-title" style="font-size:1rem;margin-bottom:4px;">No portfolio projects added yet</div>
+          <p style="font-size:0.82rem;color:var(--text-3);max-width:380px;margin:0 auto 1rem;">
+            Adding past projects increases client hire rates by over 40% on SkillBridge!
+          </p>
+          <button class="btn btn-primary btn-sm" ng-click="openAddPortfolio()">+ Add First Project</button>
+        </div>
+
+        <!-- Portfolio Cards Grid -->
+        <div class="grid-2" ng-if="profile.portfolio && profile.portfolio.length > 0">
+          <div class="portfolio-item-card"
+               ng-repeat="item in profile.portfolio"
+               style="border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface-2);display:flex;flex-direction:column;">
+
+            <!-- Project Image if available -->
+            <div ng-if="item.image_url" style="height:140px;background:#1e293b;overflow:hidden;position:relative;">
+              <img ng-src="{{ item.image_url }}" alt="{{ item.title }}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'" />
+            </div>
+
+            <div style="padding:1rem;flex:1;display:flex;flex-direction:column;">
+              <div class="flex-between" style="align-items:flex-start;gap:0.5rem;">
+                <h4 style="font-size:1rem;font-weight:700;margin:0;color:var(--text);">{{ item.title }}</h4>
+                <button class="btn btn-ghost btn-sm"
+                        style="color:var(--danger);padding:2px 6px;font-size:0.8rem;"
+                        ng-click="deletePortfolioItem(item._id)"
+                        title="Delete project">✕</button>
+              </div>
+
+              <p style="font-size:0.82rem;color:var(--text-3);line-height:1.5;margin:0.5rem 0;flex:1;">
+                {{ item.description || 'No description provided.' }}
+              </p>
+
+              <div ng-if="item.project_url" style="margin-top:auto;padding-top:0.5rem;">
+                <a ng-href="{{ item.project_url }}" target="_blank" rel="noopener noreferrer"
+                   class="btn btn-outline btn-sm"
+                   style="font-size:0.78rem;padding:4px 10px;display:inline-flex;align-items:center;gap:4px;">
+                  🔗 Live Project →
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: VERIFIED REVIEWS -->
+    <div class="card" style="margin-top:1.25rem;" ng-if="!editing && activeTab === 'reviews'">
+      <div class="flex-between" style="margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;">
+        <div>
+          <div class="section-header" style="margin-bottom:0.25rem;">
+            ⭐ Verified Client Reviews & Ratings ({{ reviews.length }})
+          </div>
+          <div style="font-size:0.8rem;color:var(--text-3);">
+            Real ratings and feedback received from completed contracts
+          </div>
+        </div>
+        <div ng-if="profile.rating > 0" style="font-size:1.15rem;font-weight:800;color:var(--accent);">
+          ★ {{ profile.rating }} / 5.0
+        </div>
+      </div>
+
+      <div class="loading-wrap" ng-if="loadingReviews" style="padding:1rem 0;">
+        <div class="spinner"></div><span>Loading reviews...</span>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" ng-if="!loadingReviews && reviews.length === 0" style="padding:2.5rem 1rem;">
+        <span class="empty-icon" style="font-size:2rem;">🌟</span>
+        <div class="empty-title" style="font-size:1rem;margin-bottom:4px;">No reviews received yet</div>
+        <div style="font-size:0.82rem;color:var(--text-3);max-width:360px;margin:0 auto;">
+          Reviews will appear here automatically when clients or collaborators rate your completed tasks.
+        </div>
+      </div>
+
+      <!-- Reviews List -->
+      <div class="review-list" ng-if="!loadingReviews && reviews.length > 0">
+        <div class="review-item"
+             ng-repeat="r in reviews"
+             style="border-bottom:1px solid var(--border);padding:1rem 0;display:flex;flex-direction:column;gap:0.5rem;">
+          <div class="flex-between" style="flex-wrap:wrap;gap:0.5rem;">
+            <div>
+              <span style="font-weight:700;font-size:0.95rem;color:var(--text);">{{ r.task_title }}</span>
+              <span class="badge" style="background:var(--surface-2);color:var(--text-3);margin-left:6px;font-size:0.72rem;">{{ r.category }}</span>
+            </div>
+            <div style="font-size:0.8rem;color:var(--text-3);">
+              {{ r.completed_at | date:'mediumDate' }}
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span style="color:#f59e0b;font-size:1.1rem;letter-spacing:1px;">
+              <span ng-repeat="s in [1,2,3,4,5]">{{ s <= r.rating ? '★' : '☆' }}</span>
+            </span>
+            <strong style="font-size:0.9rem;color:var(--text);">{{ r.rating }}.0</strong>
+            <span style="font-size:0.8rem;color:var(--text-3);">· Paid: ${{ r.budget }}</span>
+          </div>
+
+          <p ng-if="r.comment" style="font-size:0.88rem;color:var(--text-2);line-height:1.5;margin:0;font-style:italic;">
+            "{{ r.comment }}"
+          </p>
+          <div style="font-size:0.75rem;color:var(--text-3);display:flex;align-items:center;gap:6px;">
+            <span>By: <strong>{{ r.reviewer.name }}</strong></span>
+            <span class="badge badge-premium" ng-if="r.reviewer.is_premium" style="font-size:0.68rem;padding:2px 6px;">🌟 Verified Client</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upgrade Banner -->
     <div class="info-banner" ng-if="!profile.is_premium" style="margin-top:1.5rem;">
-      🌟 <strong>Upgrade to Premium</strong> — Get featured in search results and a verified badge for just $9.99/month!
+      🌟 <strong>Upgrade to Premium</strong> — Get featured at the top of client search results and earn a verified badge!
       <button class="btn btn-primary btn-sm" style="margin-left:auto;" ng-click="upgradeToPremium()">Upgrade Now</button>
+    </div>
+  </div>
+
+  <!-- ── Add Portfolio Item Modal ── -->
+  <div class="modal-backdrop" ng-if="showPortfolioModal" ng-click="closePortfolioModal()">
+    <div class="modal-content" ng-click="$event.stopPropagation()" style="max-width:500px;border-radius:16px;padding:2rem;">
+      <div class="flex-between" style="margin-bottom:1.25rem;">
+        <h3 style="font-size:1.25rem;font-weight:800;margin:0;">🎨 Add Portfolio Project</h3>
+        <button class="btn btn-ghost btn-sm" ng-click="closePortfolioModal()" style="font-size:1.2rem;line-height:1;padding:4px 8px;">✕</button>
+      </div>
+
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label class="form-label" style="font-weight:600;">Project Title *</label>
+        <input class="form-control" type="text" ng-model="portfolioForm.title" placeholder="e.g. E-Commerce Dashboard, Crypto App" required />
+      </div>
+
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label class="form-label" style="font-weight:600;">Description</label>
+        <textarea class="form-control" rows="3" ng-model="portfolioForm.description" placeholder="Briefly describe the stack, your role, and features built..."></textarea>
+      </div>
+
+      <div class="form-group" style="margin-bottom:1rem;">
+        <label class="form-label" style="font-weight:600;">Live Project URL / GitHub (Optional)</label>
+        <input class="form-control" type="url" ng-model="portfolioForm.project_url" placeholder="https://github.com/... or https://..." />
+      </div>
+
+      <div class="form-group" style="margin-bottom:1.5rem;">
+        <label class="form-label" style="font-weight:600;">Cover Image URL (Optional)</label>
+        <input class="form-control" type="url" ng-model="portfolioForm.image_url" placeholder="https://images.unsplash.com/... or image link" />
+      </div>
+
+      <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+        <button class="btn btn-outline" ng-click="closePortfolioModal()" ng-disabled="savingPortfolio">Cancel</button>
+        <button class="btn btn-primary" ng-click="savePortfolioItem()" ng-disabled="!portfolioForm.title || savingPortfolio">
+          <span ng-if="!savingPortfolio">Add Project ✓</span>
+          <span ng-if="savingPortfolio">Saving...</span>
+        </button>
+      </div>
     </div>
   </div>
 </div>

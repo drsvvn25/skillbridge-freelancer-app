@@ -2,11 +2,11 @@
 <div style="padding:1.5rem 1.5rem 0; max-width:1280px; margin:0 auto;" ng-if="isFreelancer()">
   <div class="hero">
     <h1>Find Your Next <br/>Freelance Project</h1>
-    <p>Browse hundreds of tasks posted by real clients. Bid smart, work fast, get paid.</p>
+    <p>Browse hundreds of tasks posted by verified clients. Bid smart, work fast, get paid safely with milestone escrow.</p>
     <div class="hero-stats">
-      <div><div class="hero-stat-val">{{ tasks.length }}+</div><div class="hero-stat-label">Open Tasks</div></div>
+      <div><div class="hero-stat-val">{{ tasks.length }}+</div><div class="hero-stat-label">Available Tasks</div></div>
       <div><div class="hero-stat-val">8</div><div class="hero-stat-label">Categories</div></div>
-      <div><div class="hero-stat-val">10%</div><div class="hero-stat-label">Platform Fee</div></div>
+      <div><div class="hero-stat-val">10%</div><div class="hero-stat-label">Fair Platform Fee</div></div>
     </div>
   </div>
 </div>
@@ -16,108 +16,158 @@
   <div class="flex-between page-header" style="flex-wrap:wrap;gap:1rem;">
     <div>
       <h1 class="page-title">Task <span class="text-brand">Marketplace</span></h1>
-      <p class="page-subtitle">{{ tasks.length }} tasks available · Real-time AJAX updates</p>
+      <p class="page-subtitle">{{ tasks.length }} tasks match your current criteria · Live Search</p>
     </div>
     <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
       <div ng-if="isFreelancer()" style="display:flex;gap:0.35rem;">
-        <button class="btn btn-ghost btn-sm" ng-class="{'btn-primary': matchFilter==='high'}" ng-click="matchFilter='high'; fetchTasks()">🎯 Best Match</button>
-        <button class="btn btn-ghost btn-sm" ng-class="{'btn-secondary': matchFilter===''}" ng-click="matchFilter=''; fetchTasks()">All</button>
+        <button class="btn btn-ghost btn-sm" ng-class="{'btn-primary': matchFilter==='high'}" ng-click="matchFilter = (matchFilter === 'high' ? '' : 'high'); applyFiltersAndSort()">🎯 Best Match (70%+)</button>
+        <button class="btn btn-ghost btn-sm" ng-class="{'btn-secondary': matchFilter===''}" ng-click="matchFilter=''; applyFiltersAndSort()">All</button>
       </div>
       <a href="#!/post-task" class="btn btn-primary" ng-if="isClient()">+ Post a Task</a>
     </div>
   </div>
 
-  <!-- Filter Bar (AJAX/JSON) -->
-  <div class="filter-bar">
-    <div class="search-wrap">
+  <!-- Filter Bar with Live Debounced Search & Budget Ranges -->
+  <div class="filter-bar" style="gap:0.75rem;flex-wrap:wrap;">
+    <!-- Live Debounced Search -->
+    <div class="search-wrap" style="flex:1;min-width:240px;">
       <span class="search-icon">🔍</span>
-      <input class="form-control" type="text" ng-model="search" ng-change="fetchTasks()" placeholder="Search tasks, skills..." />
+      <input class="form-control" type="text"
+             ng-model="search"
+             ng-change="onSearchChange()"
+             placeholder="Search tasks by title, description or skills..." />
     </div>
-    <select class="form-control" style="width:auto;" ng-model="selectedCategory" ng-change="fetchTasks()">
+
+    <!-- Category Filter -->
+    <select class="form-control" style="width:auto;min-width:140px;" ng-model="selectedCategory" ng-change="fetchTasks()">
       <option value="">All Categories</option>
       <option ng-repeat="cat in categories" value="{{ cat }}">{{ cat }}</option>
     </select>
-    <select class="form-control" style="width:auto;" ng-model="selectedStatus" ng-change="fetchTasks()">
-      <option value="">All Status</option>
-      <option value="open">Open</option>
+
+    <!-- Budget Range Filter (Upwork style) -->
+    <select class="form-control" style="width:auto;min-width:145px;" ng-model="budgetRange" ng-change="applyFiltersAndSort()">
+      <option value="">Any Budget</option>
+      <option value="under-100">Under $100</option>
+      <option value="100-500">$100 – $500</option>
+      <option value="above-500">$500+ (High Value)</option>
+    </select>
+
+    <!-- Status Filter -->
+    <select class="form-control" style="width:auto;min-width:125px;" ng-model="selectedStatus" ng-change="fetchTasks()">
+      <option value="">All Statuses</option>
+      <option value="open">Open (Bidding)</option>
       <option value="in_progress">In Progress</option>
       <option value="completed">Completed</option>
     </select>
-    <select class="form-control" style="width:auto;" ng-model="sortBy" ng-change="fetchTasks()">
-      <option value="newest">Newest First</option>
-      <option value="budget-high">Budget: High-Low</option>
-      <option value="budget-low">Budget: Low-High</option>
-      <option value="applicants">Most Applicants</option>
+
+    <!-- Sort Selector -->
+    <select class="form-control" style="width:auto;min-width:140px;" ng-model="sortBy" ng-change="applyFiltersAndSort()">
+      <option value="newest">🕒 Newest First</option>
+      <option value="budget-high">💰 Budget: High to Low</option>
+      <option value="budget-low">💵 Budget: Low to High</option>
+      <option value="urgency">🔥 Urgency First</option>
+      <option value="applicants">👥 Most Proposals</option>
     </select>
   </div>
 
   <!-- Loading -->
-  <div class="loading-wrap" ng-if="loading"><div class="spinner"></div><span>Fetching tasks...</span></div>
+  <div class="loading-wrap" ng-if="loading"><div class="spinner"></div><span>Fetching live marketplace tasks...</span></div>
 
-  <!-- Empty -->
+  <!-- Empty State -->
   <div class="empty-state" ng-if="!loading && tasks.length === 0">
     <span class="empty-icon">📋</span>
     <div class="empty-title">No tasks found</div>
-    <div class="empty-sub">Adjust your filters or post a new task</div>
-    <a href="#!/post-task" class="btn btn-primary" ng-if="isClient()">Post a Task</a>
+    <div class="empty-sub">Try broadening your search keyword or clearing the budget filter</div>
+    <div style="margin-top:1rem;display:flex;gap:0.5rem;justify-content:center;">
+      <button class="btn btn-outline" ng-click="search=''; selectedCategory=''; budgetRange=''; selectedStatus=''; fetchTasks()">Reset Filters</button>
+      <a href="#!/post-task" class="btn btn-primary" ng-if="isClient()">Post a New Task</a>
+    </div>
   </div>
 
-  <!-- Task Grid -->
+  <!-- Upwork-Grade Task Cards Grid -->
   <div class="grid-3" ng-if="!loading && tasks.length > 0">
-    <div class="task-card card-hover"
+    <div class="task-card card-hover upwork-job-card"
          ng-repeat="task in tasks"
          ng-click="viewInDashboard(task)">
 
-      <!-- Premium ribbon -->
-      <div class="premium-ribbon" ng-if="task.urgency === 'urgent'">🔥 Urgent</div>
+      <!-- Urgency Banner / Ribbon -->
+      <div class="premium-ribbon" ng-if="task.urgency === 'urgent'">🔥 Urgent Delivery</div>
 
-      <!-- Top row -->
-      <div class="flex-between">
-        <span class="badge"
-              ng-class="{
-                'badge-open': task.status==='open',
-                'badge-progress': task.status==='in_progress',
-                'badge-completed': task.status==='completed',
-                'badge-cancelled': task.status==='cancelled'
-              }">{{ task.status | replace:'_':' ' }}</span>
-        <!-- Match Score for freelancers -->
-        <span class="match-score"
-              ng-if="isFreelancer() && task.matchScore !== undefined"
-              ng-class="getMatchClass(task.matchScore)">
-          🎯 {{ task.matchScore }}% match
+      <!-- Top Row: Status + Match Score + Time Ago -->
+      <div class="flex-between" style="margin-bottom:0.6rem;align-items:center;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span class="badge"
+                ng-class="{
+                  'badge-open': task.status==='open',
+                  'badge-progress': task.status==='in_progress',
+                  'badge-completed': task.status==='completed',
+                  'badge-cancelled': task.status==='cancelled'
+                }">{{ task.status | replace:'_':' ' }}</span>
+          
+          <span class="upwork-pill-verified" title="Verified Client on SkillBridge">
+            ✓ Verified Client
+          </span>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:6px;">
+          <!-- Match Score for freelancers -->
+          <span class="match-score"
+                ng-if="isFreelancer() && task.matchScore !== undefined"
+                ng-class="getMatchClass(task.matchScore)">
+            🎯 {{ task.matchScore }}%
+          </span>
+          <span style="font-size:0.75rem;color:var(--text-3);white-space:nowrap;">
+            {{ timeAgo(task.created_at) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Job Title -->
+      <div class="card-title upwork-job-title">{{ task.title }}</div>
+
+      <!-- Job Description Snippet -->
+      <p style="font-size:0.84rem;color:var(--text-3);line-height:1.55;flex:1;margin-bottom:0.75rem;">
+        {{ task.description | truncate:120 }}
+      </p>
+
+      <!-- Upwork-Style Skill Tags Chips -->
+      <div class="task-tags" style="margin-bottom:1rem;">
+        <span class="upwork-skill-chip" ng-repeat="s in (task.required_skills && task.required_skills.length ? task.required_skills : [task.category]) | limitTo:4">
+          {{ s }}
+        </span>
+        <span class="upwork-skill-chip-more" ng-if="task.required_skills.length > 4">
+          +{{ task.required_skills.length - 4 }}
         </span>
       </div>
 
-      <div class="card-title" style="font-size:1.025rem;">{{ task.title }}</div>
-      <p style="font-size:0.83rem;color:var(--text-3);line-height:1.55;flex:1;">
-        {{ task.description | truncate:110 }}
-      </p>
-
-      <!-- Skills -->
-      <div class="task-tags" ng-if="task.required_skills && task.required_skills.length > 0">
-        <span class="task-tag" ng-repeat="s in task.required_skills | limitTo:4">{{ s }}</span>
-      </div>
-      <div class="task-tag" ng-if="!task.required_skills || task.required_skills.length === 0">
-        📁 {{ task.category }}
-      </div>
-
-      <!-- Budget + Bid info -->
-      <div class="flex-between">
+      <!-- Budget + Proposal Meta (Upwork Pattern) -->
+      <div class="upwork-meta-row">
         <div>
-          <div class="task-budget">${{ task.budget }}</div>
-          <div class="task-net">→ Freelancer gets: ${{ task.budget * 0.9 | number:2 }}</div>
-          <div class="bid-range" ng-if="getLowestBid(task)">Lowest bid: ${{ getLowestBid(task) }}</div>
+          <div class="task-budget" style="font-size:1.35rem;font-weight:800;">
+            ${{ task.budget }}
+          </div>
+          <div class="task-net" style="font-size:0.72rem;color:var(--text-3);margin-top:1px;">
+            Net Payout: <strong class="text-brand">${{ task.budget * 0.9 | number:2 }}</strong>
+          </div>
+          <div class="bid-range" ng-if="getLowestBid(task)" style="font-size:0.75rem;color:var(--brand);margin-top:2px;">
+            Lowest Bid: ${{ getLowestBid(task) }}
+          </div>
         </div>
+
         <div style="text-align:right;">
-          <div class="task-applicants">👥 {{ task.applications.length || 0 }} bids</div>
-          <div style="font-size:0.72rem;color:var(--text-4);margin-top:3px;">{{ task.created_at | date:'MMM d' }}</div>
+          <div class="upwork-proposal-badge">
+            <span style="font-weight:700;">Proposals:</span> {{ task.applications.length || 0 }}
+          </div>
+          <div style="font-size:0.72rem;color:var(--text-4);margin-top:3px;">
+            📁 {{ task.category }}
+          </div>
         </div>
       </div>
 
-      <!-- Phase progress -->
-      <div ng-if="task.phases && task.phases.length > 0 && task.status !== 'open'">
-        <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--text-3);margin-bottom:5px;">
-          <span>Phase {{ task.current_phase_index + 1 }}/{{ task.phases.length }}</span>
+      <!-- Active Phase Progress (if in progress) -->
+      <div ng-if="task.phases && task.phases.length > 0 && task.status !== 'open'" style="margin-top:0.75rem;">
+        <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:var(--text-3);margin-bottom:4px;">
+          <span>Phase {{ task.current_phase_index + 1 }} of {{ task.phases.length }}</span>
           <span>{{ task.phases[task.current_phase_index].name }}</span>
         </div>
         <div class="progress-wrap">
@@ -125,50 +175,82 @@
         </div>
       </div>
 
-      <!-- Action button -->
-      <div style="margin-top:auto;padding-top:0.25rem;">
+      <!-- Card Action Button -->
+      <div style="margin-top:1rem;padding-top:0.25rem;">
         <button class="btn btn-primary w-full"
+                style="font-weight:600;letter-spacing:0.02em;"
                 ng-if="task.status === 'open' && isFreelancer() && !hasApplied(task)"
                 ng-click="applyToTask($event, task)">
-          Place Bid →
+          Apply / Submit Proposal →
         </button>
         <div ng-if="task.status === 'open' && isFreelancer() && hasApplied(task)"
-             class="btn btn-secondary w-full" style="cursor:default;justify-content:center;">
-          ✓ Bid Placed
+             class="btn btn-secondary w-full" style="cursor:default;justify-content:center;font-weight:600;">
+          ✓ Proposal Submitted
         </div>
         <a href="#!/messages/{{ task._id }}"
            class="btn btn-outline w-full"
            ng-if="task.status === 'in_progress' && isInvolved(task)"
-           ng-click="$event.stopPropagation()">💬 Open Chat</a>
+           ng-click="$event.stopPropagation()">💬 Open Contract Room</a>
         <div ng-if="isClient() && task.status === 'open'"
-             class="badge badge-open" style="display:block;text-align:center;">Your Posted Task</div>
+             class="badge badge-open" style="display:block;text-align:center;padding:6px;font-weight:600;">
+          👤 Your Posted Task ({{ task.applications.length || 0 }} Proposals)
+        </div>
       </div>
+
     </div>
   </div>
 
-  <!-- Apply / Bid Modal -->
+  <!-- Apply / Proposal Modal (Freelancer.in / Upwork Style) -->
   <div class="modal-overlay" ng-show="showApplyModal">
-    <div class="modal" ng-click="$event.stopPropagation()">
-      <h3 class="modal-title">📨 Place a Bid</h3>
-      <div style="background:var(--surface-2);border-radius:var(--radius-sm);padding:0.875rem;margin-bottom:1.25rem;font-size:0.875rem;">
-        <div style="font-weight:700;margin-bottom:4px;">{{ selectedTask.title }}</div>
-        <div style="color:var(--text-3);">Client budget: <strong style="color:var(--text);">${{ selectedTask.budget }}</strong></div>
+    <div class="modal" ng-click="$event.stopPropagation()" style="max-width:540px;border-radius:16px;">
+      <div class="flex-between" style="margin-bottom:1rem;">
+        <h3 class="modal-title" style="margin:0;font-size:1.3rem;">📨 Submit a Proposal</h3>
+        <button class="btn btn-ghost btn-sm" ng-click="showApplyModal=false" style="font-size:1.2rem;line-height:1;padding:4px 8px;">✕</button>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Your Bid (USD)</label>
-        <input class="form-control" type="number" ng-model="applyData.bidAmount" min="1" max="{{ selectedTask.budget }}" placeholder="{{ selectedTask.budget }}" />
-        <div class="form-hint">You'll receive ${{ (applyData.bidAmount * 0.9) | number:2 }} after 10% platform fee</div>
+      <div style="background:var(--surface-2);border-radius:10px;padding:0.9rem 1.1rem;margin-bottom:1.25rem;">
+        <div style="font-weight:700;font-size:1rem;margin-bottom:4px;color:var(--text);">{{ selectedTask.title }}</div>
+        <div style="display:flex;gap:1rem;font-size:0.82rem;color:var(--text-3);flex-wrap:wrap;">
+          <span>Category: <strong style="color:var(--text);">{{ selectedTask.category }}</strong></span>
+          <span>Client Budget: <strong class="text-brand">${{ selectedTask.budget }}</strong></span>
+          <span ng-if="selectedTask.urgency === 'urgent'" style="color:var(--danger);font-weight:700;">🔥 Urgent</span>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Your Proposal *</label>
-        <textarea class="form-control" ng-model="applyData.proposalText" placeholder="Explain why you're the best fit. Mention your experience, timeline, and approach..." rows="4" required></textarea>
+      <div class="form-group" style="margin-bottom:1.25rem;">
+        <label class="form-label" style="font-weight:600;">Your Bid Amount (USD)</label>
+        <div style="position:relative;">
+          <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-weight:700;color:var(--text-3);">$</span>
+          <input class="form-control" type="number"
+                 style="padding-left:26px;font-size:1.05rem;font-weight:700;"
+                 ng-model="applyData.bidAmount"
+                 min="1"
+                 max="{{ selectedTask.budget }}"
+                 placeholder="{{ selectedTask.budget }}" />
+        </div>
+        <div class="form-hint" style="margin-top:4px;font-size:0.8rem;color:var(--text-3);">
+          Platform Fee (10%): -${{ (applyData.bidAmount * 0.10) | number:2 }} ·
+          You will receive: <strong class="text-brand">${{ (applyData.bidAmount * 0.90) | number:2 }}</strong>
+        </div>
       </div>
 
-      <div class="modal-actions">
-        <button class="btn btn-ghost" ng-click="showApplyModal=false">Cancel</button>
-        <button class="btn btn-primary" ng-click="submitApplication()" ng-disabled="!applyData.proposalText">Submit Bid →</button>
+      <div class="form-group" style="margin-bottom:1.5rem;">
+        <label class="form-label" style="font-weight:600;">Cover Letter / Proposal *</label>
+        <textarea class="form-control"
+                  ng-model="applyData.proposalText"
+                  placeholder="Introduce yourself and explain why you're the best candidate. Mention relevant past projects, estimated delivery timeline, and your approach..."
+                  rows="5"
+                  style="border-radius:10px;"
+                  required></textarea>
+      </div>
+
+      <div class="modal-actions" style="display:flex;gap:0.75rem;justify-content:flex-end;">
+        <button class="btn btn-outline" ng-click="showApplyModal=false">Cancel</button>
+        <button class="btn btn-primary"
+                ng-click="submitApplication()"
+                ng-disabled="!applyData.proposalText || !applyData.bidAmount">
+          Send Proposal Now →
+        </button>
       </div>
     </div>
   </div>

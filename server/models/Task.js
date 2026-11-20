@@ -1,11 +1,18 @@
 const mongoose = require('mongoose');
 
+const reviewSchema = new mongoose.Schema({
+  rating: { type: Number, min: 1, max: 5, required: true },
+  comment: { type: String, default: '' },
+  created_at: { type: Date, default: Date.now }
+}, { _id: false });
 const phaseSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String, default: '' },
   deadline_minutes: { type: Number, default: 120 }, // default 2 hours
   started_at: { type: Date, default: null },
   completed_at: { type: Date, default: null },
+  review_by_client: { type: reviewSchema, default: null },
+  review_by_freelancer: { type: reviewSchema, default: null },
   status: {
     type: String,
     enum: ['pending', 'active', 'completed', 'overdue'],
@@ -40,8 +47,11 @@ const taskSchema = new mongoose.Schema({
   penalty_applied: { type: Number, default: 0 }, // in dollars
   commission_amount: { type: Number, default: 0 },
   deleted_by_freelancer: { type: Boolean, default: false },
+  deleted_by_client: { type: Boolean, default: false },
   created_at: { type: Date, default: Date.now },
   completed_at: { type: Date, default: null },
+  review_by_client: { type: reviewSchema, default: null },
+  review_by_freelancer: { type: reviewSchema, default: null },
 }, {
   toJSON: { virtuals: true },
   toObject: { virtuals: true }

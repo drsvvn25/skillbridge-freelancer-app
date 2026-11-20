@@ -32,14 +32,20 @@ function($scope, $rootScope, $location, $window, MessageService) {
   $scope.mobileMenuOpen = false;
 
   $scope.toggleUserMenu = function($event) {
-    if ($event) $event.stopPropagation();
+    if ($event) {
+      $event.preventDefault();
+      $event.stopPropagation();
+    }
     $scope.showUserMenu = !$scope.showUserMenu;
     $scope.showNotifications = false;
     $scope.mobileMenuOpen = false;
   };
 
   $scope.toggleNotifications = function($event) {
-    if ($event) $event.stopPropagation();
+    if ($event) {
+      $event.preventDefault();
+      $event.stopPropagation();
+    }
     $scope.showNotifications = !$scope.showNotifications;
     $scope.showUserMenu = false;
     $scope.mobileMenuOpen = false;
@@ -50,7 +56,10 @@ function($scope, $rootScope, $location, $window, MessageService) {
   };
 
   $scope.toggleMobileMenu = function($event) {
-    if ($event) $event.stopPropagation();
+    if ($event) {
+      $event.preventDefault();
+      $event.stopPropagation();
+    }
     $scope.mobileMenuOpen = !$scope.mobileMenuOpen;
     $scope.showUserMenu = false;
     $scope.showNotifications = false;
@@ -61,6 +70,15 @@ function($scope, $rootScope, $location, $window, MessageService) {
     $scope.showNotifications = false;
     $scope.mobileMenuOpen = false;
   };
+
+  // Close menus when clicking anywhere outside
+  angular.element($window).bind('click', function(e) {
+    if ($scope.showUserMenu || $scope.showNotifications || $scope.mobileMenuOpen) {
+      $scope.$apply(function() {
+        $scope.closeMenus();
+      });
+    }
+  });
 
   // Load unread count and notifications
   function refreshUnread() {
@@ -76,7 +94,17 @@ function($scope, $rootScope, $location, $window, MessageService) {
   }
 
   $rootScope.$on('$routeChangeSuccess', function() {
+    $scope.closeMenus();
     refreshUnread();
+
+    // Ensure currentUser is available
+    if (!$rootScope.currentUser) {
+      try {
+        const u = localStorage.getItem('user');
+        if (u) $rootScope.currentUser = JSON.parse(u);
+      } catch (e) {}
+    }
+
     // Set avatar color based on user
     if ($rootScope.currentUser) {
       const name = $rootScope.currentUser.full_name || 'A';

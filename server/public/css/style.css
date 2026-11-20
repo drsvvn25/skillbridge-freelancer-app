@@ -1498,3 +1498,172 @@ select.form-control { background-image: url("data:image/svg+xml,%3Csvg xmlns='ht
   .skillbot-bubble { bottom: 18px; right: 18px; width: 56px; height: 56px; }
   .skillbot-panel  { bottom: 86px; right: 12px; width: calc(100vw - 24px); height: 72vh; }
 }
+
+/* == Interactive Star Rating & Modal Styles ====================== */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+  padding: 1rem;
+}
+.modal-content {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  animation: modalFadeIn 0.25s ease-out;
+}
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+body.dark-mode .modal-content {
+  background: #1e293b;
+  border-color: #334155;
+  box-shadow: 0 20px 45px rgba(0,0,0,0.6);
+}
+
+/* == Upwork-Style Marketplace Job Cards & Badges ================= */
+.upwork-job-card {
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.upwork-job-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--brand);
+}
+.upwork-job-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.08rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+  transition: color 0.15s ease;
+}
+.upwork-job-card:hover .upwork-job-title {
+  color: var(--brand);
+}
+.upwork-pill-verified {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #0284c7;
+  background: rgba(2, 132, 199, 0.1);
+  padding: 2px 7px;
+  border-radius: 50px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  letter-spacing: 0.02em;
+}
+body.dark-mode .upwork-pill-verified {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+}
+.upwork-skill-chip {
+  display: inline-block;
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 0.73rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  transition: background 0.15s, border-color 0.15s;
+}
+.upwork-skill-chip:hover {
+  background: var(--border);
+  color: var(--text);
+}
+.upwork-skill-chip-more {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-3);
+  padding: 3px 5px;
+}
+.upwork-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-top: 1px dashed var(--border);
+  padding-top: 0.75rem;
+  margin-top: 0.5rem;
+}
+.upwork-proposal-badge {
+  font-size: 0.78rem;
+  color: var(--text-2);
+  background: var(--surface-2);
+  padding: 3px 8px;
+  border-radius: 6px;
+  display: inline-block;
+}
+body.dark-mode .upwork-skill-chip {
+  background: #263348;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+body.dark-mode .upwork-proposal-badge {
+  background: #263348;
+  color: #e2e8f0;
+}
+
+/* == Escrow Guarantee Badge & Animated Empty State ================ */
+.escrow-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--brand-light);
+  color: var(--brand-dark);
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 50px;
+  border: 1px solid rgba(29, 191, 115, 0.25);
+  letter-spacing: 0.02em;
+}
+body.dark-mode .escrow-badge {
+  background: rgba(34, 211, 126, 0.12);
+  color: #22d37e;
+  border-color: rgba(34, 211, 126, 0.3);
+}
+.escrow-icon {
+  font-size: 0.9rem;
+}
+
+/* Animated Empty State */
+.animated-empty {
+  padding: 3rem 1.5rem;
+  animation: fadeInEmpty 0.4s ease-out;
+}
+@keyframes fadeInEmpty {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.empty-illustration-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.empty-svg {
+  animation: floatEmptySvg 3s ease-in-out infinite;
+}
+@keyframes floatEmptySvg {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
