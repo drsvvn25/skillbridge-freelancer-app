@@ -10,6 +10,16 @@ function($scope, $rootScope, $location, $window, MessageService) {
   $scope.scrolled = false;
   $scope.unreadCount = 0;
 
+  // Dark / Light Mode
+  $scope.darkMode = $window.localStorage.getItem('skillbridge-theme') === 'dark';
+  $rootScope.darkMode = $scope.darkMode;
+
+  $scope.toggleTheme = function() {
+    $scope.darkMode = !$scope.darkMode;
+    $rootScope.darkMode = $scope.darkMode;
+    $window.localStorage.setItem('skillbridge-theme', $scope.darkMode ? 'dark' : 'light');
+  };
+
   $scope.notifications = [];
 
   // Scroll detection for navbar shadow

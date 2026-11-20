@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 
-<body ng-controller="RootCtrl">
+<body ng-controller="RootCtrl" ng-class="{'dark-mode': darkMode}">
 
   <!-- ── Navbar ─────────────────────────────────────── -->
   <nav class="navbar" ng-class="{'navbar-scrolled': scrolled}">
@@ -55,6 +55,11 @@
           <a href="#!/login" class="btn btn-outline-nav">Log In</a>
           <a href="#!/register" class="btn btn-primary-nav">Sign Up Free</a>
         </div>
+<!-- Dark / Light Mode Toggle -->
+        <button class="theme-toggle-btn" ng-click="toggleTheme()" title="{{ darkMode ? 'Switch to Light' : 'Switch to Dark' }}" ng-if="isLoggedIn()">
+          <span>{{ darkMode ? '&#9728;&#65039;' : '&#127769;' }}</span>
+          <span class="toggle-label">{{ darkMode ? 'Light' : 'Dark' }}</span>
+        </button>
         <!-- Notification Bell -->
         <div class="nav-icon-btn" ng-if="isLoggedIn()" ng-click="toggleNotifications()" style="position:relative;">
           🔔
