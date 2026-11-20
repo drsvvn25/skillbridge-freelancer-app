@@ -1,5 +1,8 @@
 // =========================================================
-// SkillBridge — SkillBot Chatbot Route (Gemini AI Powered)
+// SkillBridge — SkillBot Chatbot Route
+// AI Powered via: Zapier Webhook → Gemini / OpenAI
+//                 (falls back to direct Gemini SDK if Zapier unavailable)
+//
 // /api/chatbot/message  (POST, auth required)
 // /api/chatbot/guest    (POST, no auth)
 // =========================================================
@@ -8,17 +11,14 @@ const router  = express.Router();
 const auth    = require('../middleware/auth');
 const Task    = require('../models/Task');
 const User    = require('../models/User');
-const { GoogleGenAI } = require('@google/genai');
 
-// ── Gemini AI setup (cached client for speed) ─────────────────────
-let cachedClient = null;
-function getGeminiClient() {
-  if (cachedClient) return cachedClient;
-  const key = process.env.GEMINI_API_KEY;
-  if (!key || key.includes('your-gemini')) return null;
-  cachedClient = new GoogleGenAI({ apiKey: key });
-  return cachedClient;
-}
+// ── AI: n8n webhook (primary) + Gemini direct (fallback) ──────────
+const { askAI, isN8nConfigured } = require('../utils/zapierAI');
+
+// Log AI source on startup
+console.log(isN8nConfigured()
+  ? '[SkillBot] 🔗 AI via n8n webhook (n8n → Gemini/OpenAI)'
+  : '[SkillBot] ⚡ AI via direct Gemini SDK (N8N_WEBHOOK_URL not set)');
 
 // ── In-memory conversation history per user ─────────────────────
 const sessions = new Map();
@@ -31,34 +31,9 @@ const CATEGORIES = [
 ];
 
 // ─────────────────────────────────────────────────────────────────
-// GEMINI AI chat function (Optimized for low latency)
+// askAI — Unified AI call: Zapier first, Gemini SDK fallback
+// (Defined in utils/zapierAI.js — imported above)
 // ─────────────────────────────────────────────────────────────────
-async function askGemini(systemPrompt, history, userMessage) {
-  const client = getGeminiClient();
-  if (!client) return null;
-
-  // Direct fast model (gemini-2.5-flash) for instant response
-  try {
-    const chat = client.chats.create({
-      model: 'gemini-2.5-flash',
-      config: { 
-        systemInstruction: systemPrompt,
-        maxOutputTokens: 180,
-        temperature: 0.6
-      },
-      history: history || []
-    });
-
-    const response = await chat.sendMessage({ message: userMessage });
-    if (response && response.text) {
-      return response.text;
-    }
-  } catch (err) {
-    console.warn('[SkillBot Gemini 2.5 Flash error]', err.message);
-  }
-
-  return null;
-}
 
 // ─────────────────────────────────────────────────────────────────
 // Build system prompt (Parallelized DB queries for fast execution)
@@ -89,14 +64,14 @@ async function buildSystemPrompt(user) {
     liveContext = '';
   }
 
-  return `You are SkillBot, AI assistant for SkillBridge freelancer platform.
+  return `You are SkillBot, a friendly and intelligent AI assistant.
 USER: ${user.full_name} (${userType}). ${liveContext}
 INSTRUCTIONS:
-- Be helpful, concise (2-4 sentences max), friendly, and format with **bold** & bullet points.
-- SkillBridge is a freelance platform (10% fee, phase milestones, bids, penalties).
-- For actual task posting tell clients to type "post a task".
-- For task recommendations tell freelancers to type "recommend me tasks".
-- Stay on topic about SkillBridge and freelancing.`;
+- You answer ANY question the user asks (general knowledge, current events, weather, technology, science, everyday topics) accurately and naturally.
+- You are also the resident expert on the SkillBridge freelancing platform (10% platform fee, milestones, bidding, penalties).
+- Be polite, concise (2-4 sentences), and format with **bold** and bullet points where helpful.
+- If the user specifically asks how to post tasks, tell clients to type "post a task".
+- If the user specifically asks to find freelance work, tell freelancers to type "recommend me tasks".`;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -179,7 +154,28 @@ router.post('/message', auth, async (req, res) => {
     }
 
     // ── Get/init session ───────────────────────────────────────
-    let session = sessions.get(userId) || { taskFlow: null, history: [] };
+    let session = sessions.get(userId) || { taskFlow: null, history: [], aiCount: 0, resetTime: null };
+
+    // ── Auto 6-Hour Refill Check ───────────────────────────────
+    const REFILL_WINDOW_MS = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
+    const now = Date.now();
+
+    if (session.resetTime && now >= session.resetTime) {
+      session.aiCount = 0;
+      session.resetTime = null;
+    }
+
+    // Reset counter command if user wants to reset or test manually
+    if (/^(reset count|clear limit|reset limit)$/i.test(userMsg)) {
+      session.aiCount = 0;
+      session.resetTime = null;
+      sessions.set(userId, session);
+      return res.json({
+        reply: '🔄 Your AI query limit has been reset! You have 3 queries remaining.',
+        type: 'text',
+        quickActions: getQuickActions(userType)
+      });
+    }
 
     // ── Mid-flow: in task creation wizard ──────────────────────
     if (session.taskFlow && session.taskFlow.step !== 'idle') {
@@ -201,24 +197,52 @@ router.post('/message', auth, async (req, res) => {
       }
     }
 
-    // ── Gemini AI free-form conversation ───────────────────────
+    // ── Check 3-Query Limit for AI questions ───────────────────
+    const MAX_AI_QUERIES = 3;
+    if ((session.aiCount || 0) >= MAX_AI_QUERIES) {
+      const msLeft = (session.resetTime || (now + REFILL_WINDOW_MS)) - now;
+      const hoursLeft = Math.floor(msLeft / (1000 * 60 * 60));
+      const minsLeft = Math.ceil((msLeft % (1000 * 60 * 60)) / (1000 * 60));
+      const timeMsg = hoursLeft > 0 ? `${hoursLeft}h ${minsLeft}m` : `${minsLeft} minutes`;
+
+      return res.json({
+        reply: `⚠️ **AI Question Limit Reached (3/3)**\n\nYou have used your **3 AI questions**. Your limit will automatically refill in **${timeMsg}** (every 6 hours).\n\nYou can still use platform commands like **"my tasks"**, **"recommend tasks"**, or type **"reset limit"** to refresh!`,
+        type: 'warning',
+        limitReached: true,
+        quickActions: getQuickActions(userType)
+      });
+    }
+
+    // ── AI free-form conversation (n8n Webhook / Gemini) ───────
     const systemPrompt = await buildSystemPrompt(req.user);
-    const aiReply = await askGemini(systemPrompt, session.history, userMsg);
+    const aiReply = await askAI(systemPrompt, session.history, userMsg);
 
     if (aiReply) {
-      // Store conversation history (last 20 turns to avoid token overflow)
+      // Increment AI query count and set 6-hour refill timer on first query
+      session.aiCount = (session.aiCount || 0) + 1;
+      if (!session.resetTime) {
+        session.resetTime = now + REFILL_WINDOW_MS;
+      }
+
+      const remaining = MAX_AI_QUERIES - session.aiCount;
+      const remainingNotice = remaining > 0 
+        ? `\n\n*(📊 ${remaining} AI query remaining · refills in 6h)*` 
+        : `\n\n*(⚠️ You have reached your 3 AI query limit! Refills in 6 hours)*`;
+
+      // Store conversation history
       session.history.push(
         { role: 'user',  parts: [{ text: userMsg  }] },
         { role: 'model', parts: [{ text: aiReply  }] }
       );
       if (session.history.length > 40) {
-        session.history = session.history.slice(-40); // keep last 20 turns
+        session.history = session.history.slice(-40);
       }
       sessions.set(userId, session);
       return res.json({
-        reply: aiReply,
+        reply: aiReply + remainingNotice,
         type: 'text',
-        source: 'gemini',
+        source: isN8nConfigured() ? 'n8n' : 'gemini',
+        remainingQueries: remaining,
         quickActions: getQuickActions(userType)
       });
     }
@@ -556,7 +580,7 @@ Key pages: Login (#!/login), Register (#!/register)
 Format: Use **bold** for important terms, link format: [Text](url)
 Keep responses concise (2-4 sentences).`;
 
-  const aiReply = await askGemini(guestPrompt, [], userMsg);
+  const aiReply = await askAI(guestPrompt, [], userMsg);
   if (aiReply) {
     return res.json({ reply: aiReply, type: 'text', source: 'gemini' });
   }
