@@ -84,15 +84,50 @@
       </div>
     </div>
 
-    <!-- Animated Diagonal Section Cross Divider -->
+    <!-- Animated Firing Flame Cross Divider -->
     <div class="hero-cross-divider" aria-hidden="true">
       <svg class="cross-line-svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+        <defs>
+          <!-- Light Theme: Red & Yellow Fire Gradient -->
+          <linearGradient id="fireGradLight" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#ef4444" />
+            <stop offset="30%" stop-color="#f59e0b" />
+            <stop offset="60%" stop-color="#fbbf24" />
+            <stop offset="85%" stop-color="#f97316" />
+            <stop offset="100%" stop-color="#ef4444" />
+          </linearGradient>
+          <!-- Dark Theme: Vibrant Emerald & Neon Green Flame Gradient -->
+          <linearGradient id="fireGradDark" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#10b981" />
+            <stop offset="25%" stop-color="#22d37e" />
+            <stop offset="50%" stop-color="#4ade80" />
+            <stop offset="75%" stop-color="#1dbf73" />
+            <stop offset="100%" stop-color="#059669" />
+          </linearGradient>
+          <!-- Flame Glow Filter -->
+          <filter id="fireGlow" x="-20%" y="-40%" width="140%" height="180%">
+            <feGaussianBlur stdDeviation="3.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <!-- Section Fill Transition -->
         <path class="cross-fill-path" d="M0,0 C300,90 900,30 1200,120 L1200,120 L0,120 Z"></path>
-        <path class="cross-animated-line" d="M0,0 C300,90 900,30 1200,120"></path>
+        
+        <!-- Ambient Base Heat Glow Curve -->
+        <path class="fire-flame-ambient" d="M0,0 C300,90 900,30 1200,120"></path>
+        
+        <!-- Primary Firing Flame Jet Path -->
+        <path class="fire-flame-primary" d="M0,0 C300,90 900,30 1200,120" filter="url(#fireGlow)"></path>
+        
+        <!-- Fast Crackling Spark Jet -->
+        <path class="fire-flame-sparks" d="M0,0 C300,90 900,30 1200,120"></path>
       </svg>
       <div class="cross-disenable-badge">
         <span class="cross-badge-dot"></span>
-        <span class="cross-badge-text">Interactive Ecosystem</span>
+        <span class="cross-badge-text">⚡ Live Energy Flow</span>
       </div>
     </div>
   </section>
