@@ -2719,11 +2719,11 @@ body.dark-mode .home-footer {
   position: relative;
   display: block;
   width: 100%;
-  height: 60px;
+  height: 110px;
 }
 @media (min-width: 1024px) {
   .cross-cut-svg {
-    height: 75px;
+    height: 140px;
   }
 }
 
