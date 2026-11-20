@@ -41,23 +41,23 @@ function($scope, $rootScope, $location, $window, MessageService) {
     $scope.currencyDropdownOpen = false;
   };
 
-  // Scroll detection for navbar shadow & sliding animation on scroll down
-  var lastScrollY = 0;
+  // Fixed navbar scroll tracking with horizontal progress runner
+  $scope.scrollProgress = 0;
   $scope.navHidden = false;
 
   angular.element($window).bind('scroll', function() {
     $scope.$apply(function() {
       var currentY = $window.scrollY || $window.pageYOffset || 0;
-      $scope.scrolled = currentY > 20;
+      $scope.scrolled = currentY > 15;
 
-      // When scrolling down past 120px and no popup menu is open, slide navbar up smoothly
-      if (currentY > 120 && currentY > lastScrollY && !$scope.showUserMenu && !$scope.currencyDropdownOpen && !$scope.showNotifications && !$scope.mobileMenuOpen) {
-        $scope.navHidden = true;
+      // Calculate page scroll percentage (0 to 100)
+      var docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      if (docHeight > 0) {
+        var pct = (currentY / docHeight) * 100;
+        $scope.scrollProgress = Math.min(100, Math.max(0, Math.round(pct)));
       } else {
-        // Scrolling up -> slide navbar back down
-        $scope.navHidden = false;
+        $scope.scrollProgress = 0;
       }
-      lastScrollY = currentY <= 0 ? 0 : currentY;
     });
   });
 
