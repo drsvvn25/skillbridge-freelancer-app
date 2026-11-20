@@ -126,21 +126,30 @@ async function askViaGeminiDirect(systemPrompt, history, userMessage) {
   const client = getGeminiClient();
   if (!client) return null;
 
-  try {
-    const chat = client.chats.create({
-      model: 'gemini-2.5-flash',
-      config: {
-        systemInstruction: systemPrompt,
-        maxOutputTokens: 250,
-        temperature: 0.6,
-      },
-      history: history || [],
-    });
+  // Primary model from env or latest gemini-2.5-flash, with automatic fallback
+  const preferredModel = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  const modelsToTry = [preferredModel, 'gemini-3.5-flash-lite', 'gemini-flash-latest'];
 
-    const response = await chat.sendMessage({ message: userMessage });
-    if (response && response.text) return response.text;
-  } catch (err) {
-    console.warn('[Gemini Direct fallback error]', err.message);
+  for (const model of modelsToTry) {
+    try {
+      const chat = client.chats.create({
+        model: model,
+        config: {
+          systemInstruction: systemPrompt,
+          maxOutputTokens: 300,
+          temperature: 0.6,
+        },
+        history: history || [],
+      });
+
+      const response = await chat.sendMessage({ message: userMessage });
+      if (response && response.text) {
+        return response.text;
+      }
+    } catch (err) {
+      console.warn(`[Gemini SDK ${model} error]`, err.message);
+      // continue to next model in list if this one had 503 or quota spike
+    }
   }
 
   return null;
