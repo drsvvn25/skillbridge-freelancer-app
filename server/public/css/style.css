@@ -2032,3 +2032,142 @@ body.dark-mode .shape-svg {
   50%  { transform: translateY(-24px) translateX(-10px) rotate(10deg) scale(1.05); }
   100% { transform: translateY(0) rotate(-8deg) scale(1); }
 }
+
+/* == Dark Mode Home Page Sections & Cards ====================== */
+body.dark-mode .home-page {
+  background: transparent;
+}
+body.dark-mode .section-how,
+body.dark-mode .section-features {
+  background: #0f172a !important;
+}
+body.dark-mode .section-categories {
+  background: #131d35 !important;
+}
+body.dark-mode .section-title {
+  color: #f1f5f9 !important;
+}
+body.dark-mode .section-subtitle {
+  color: #94a3b8 !important;
+}
+body.dark-mode .step-card {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+body.dark-mode .step-title {
+  color: #f1f5f9 !important;
+}
+body.dark-mode .step-desc {
+  color: #94a3b8 !important;
+}
+body.dark-mode .cat-card {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+body.dark-mode .cat-card:hover {
+  background: #263348 !important;
+  border-color: var(--brand) !important;
+}
+body.dark-mode .cat-name {
+  color: #f1f5f9 !important;
+}
+body.dark-mode .cat-count {
+  color: #94a3b8 !important;
+}
+body.dark-mode .feature-card {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+body.dark-mode .feature-title {
+  color: #f1f5f9 !important;
+}
+body.dark-mode .feature-desc {
+  color: #94a3b8 !important;
+}
+body.dark-mode .navbar.navbar-hidden {
+  transform: translateY(-100%);
+  box-shadow: none !important;
+}
+body.dark-mode .navbar.navbar-scrolled {
+  background: rgba(15, 23, 42, 0.96) !important;
+  border-bottom-color: #334155 !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
+}
+
+/* =========================================================
+   Home Page Big Symbols & Section Accents
+   ========================================================= */
+.home-big-symbol {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.16;
+  filter: drop-shadow(0 0 16px currentColor);
+  will-change: transform;
+}
+body.dark-mode .home-big-symbol {
+  opacity: 0.22;
+}
+
+.hero-symbol-bolt {
+  top: 15%;
+  left: 6%;
+  color: #1dbf73;
+  animation: floatTilt 12s ease-in-out infinite;
+}
+.hero-symbol-cube {
+  top: 18%;
+  right: 7%;
+  color: #3b82f6;
+  animation: cubeFloat 16s ease-in-out infinite;
+}
+.hero-symbol-code {
+  bottom: 16%;
+  left: 9%;
+  color: #8b5cf6;
+  animation: floatDrift 18s ease-in-out infinite;
+}
+.hero-symbol-sparkle {
+  bottom: 22%;
+  right: 8%;
+  color: #f59e0b;
+  animation: sparkleTwinkle 10s ease-in-out infinite;
+}
+
+/* Section Ambient Background Big Symbols */
+.section-bg-symbol {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.06;
+  color: var(--text);
+  z-index: 1;
+  will-change: transform;
+}
+body.dark-mode .section-bg-symbol {
+  opacity: 0.08;
+  color: #60a5fa;
+}
+
+.symbol-how-left {
+  top: 10%;
+  left: -40px;
+  animation: spinSlow 30s linear infinite;
+}
+.symbol-how-right {
+  bottom: 12%;
+  right: -30px;
+  animation: floatTilt 14s ease-in-out infinite;
+}
+
+.symbol-feat-sparkle {
+  top: 14%;
+  right: -30px;
+  color: #f59e0b;
+  animation: sparkleTwinkle 12s ease-in-out infinite;
+}
+.symbol-feat-ring {
+  bottom: 8%;
+  left: -35px;
+  color: #1dbf73;
+  animation: spinSlowReverse 28s linear infinite;
+}
