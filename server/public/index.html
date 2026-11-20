@@ -25,6 +25,54 @@
 
 <body ng-controller="RootCtrl" ng-class="{'dark-mode': darkMode}">
 
+  <!-- ── Ambient Floating Background Animation Shapes & Icons ────────────── -->
+  <div class="bg-shapes-wrapper" aria-hidden="true">
+    <!-- Ambient Radial Mesh Glows -->
+    <div class="bg-mesh-glow bg-glow-1"></div>
+    <div class="bg-mesh-glow bg-glow-2"></div>
+    <div class="bg-mesh-glow bg-glow-3"></div>
+
+    <!-- Geometric Shapes -->
+    <div class="bg-shape shape-circle shape-1"></div>
+    <div class="bg-shape shape-donut shape-2"></div>
+    <div class="bg-shape shape-polygon shape-3"></div>
+    <div class="bg-shape shape-pill shape-4"></div>
+    <div class="bg-shape shape-circle shape-5"></div>
+    <div class="bg-shape shape-star shape-6"></div>
+
+    <!-- Symbol Shapes: Lightning, Code, Sparkles, Plus, Cube, Currency, Star, Target -->
+    <div class="bg-shape shape-svg shape-bolt">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    </div>
+    <div class="bg-shape shape-svg shape-code">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+    </div>
+    <div class="bg-shape shape-svg shape-sparkle-1">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/></svg>
+    </div>
+    <div class="bg-shape shape-svg shape-sparkle-2">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z"/></svg>
+    </div>
+    <div class="bg-shape shape-svg shape-plus-1">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </div>
+    <div class="bg-shape shape-svg shape-plus-2">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </div>
+    <div class="bg-shape shape-svg shape-currency">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    </div>
+    <div class="bg-shape shape-svg shape-cube">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+    </div>
+    <div class="bg-shape shape-svg shape-star-sym">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    </div>
+
+    <!-- Fine Matrix Grid -->
+    <div class="bg-grid-overlay"></div>
+  </div>
+
   <!-- ── Navbar ─────────────────────────────────────── -->
   <nav class="navbar" ng-class="{'navbar-scrolled': scrolled}">
     <div class="nav-container">

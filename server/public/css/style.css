@@ -1701,3 +1701,323 @@ body.dark-mode .currency-menu .dropdown-item.active-curr {
   background: rgba(34, 211, 126, 0.15);
   color: #22d37e;
 }
+
+
+/* =========================================================
+   Floating Background Animation Shapes & Ambient Mesh
+   ========================================================= */
+.bg-shapes-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Ambient Radial Mesh Glows */
+.bg-mesh-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.55;
+  transition: opacity 0.5s ease;
+  will-change: transform;
+}
+.bg-glow-1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(29, 191, 115, 0.22) 0%, rgba(29, 191, 115, 0) 70%);
+  top: -120px;
+  left: -100px;
+  animation: floatGlow1 18s ease-in-out infinite alternate;
+}
+.bg-glow-2 {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.18) 0%, rgba(59, 130, 246, 0) 70%);
+  bottom: -150px;
+  right: -100px;
+  animation: floatGlow2 22s ease-in-out infinite alternate;
+}
+.bg-glow-3 {
+  width: 450px;
+  height: 450px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.14) 0%, rgba(139, 92, 246, 0) 70%);
+  top: 40%;
+  left: 55%;
+  animation: floatGlow3 20s ease-in-out infinite alternate;
+}
+
+/* Subtle Geometric Dot Grid */
+.bg-grid-overlay {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(17, 24, 39, 0.045) 1.2px, transparent 1.2px);
+  background-size: 32px 32px;
+  opacity: 0.9;
+}
+body.dark-mode .bg-grid-overlay {
+  background-image: radial-gradient(rgba(241, 245, 249, 0.05) 1.2px, transparent 1.2px);
+}
+body.dark-mode .bg-glow-1 {
+  background: radial-gradient(circle, rgba(34, 211, 126, 0.15) 0%, rgba(34, 211, 126, 0) 70%);
+}
+body.dark-mode .bg-glow-2 {
+  background: radial-gradient(circle, rgba(96, 165, 250, 0.13) 0%, rgba(96, 165, 250, 0) 70%);
+}
+body.dark-mode .bg-glow-3 {
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0) 70%);
+}
+
+/* Floating Geometric Shapes */
+.bg-shape {
+  position: absolute;
+  opacity: 0.42;
+  will-change: transform;
+}
+body.dark-mode .bg-shape {
+  opacity: 0.28;
+}
+
+/* Shape 1: Soft glowing circle */
+.shape-1 {
+  width: 90px;
+  height: 90px;
+  top: 18%;
+  left: 8%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(29, 191, 115, 0.28), rgba(59, 130, 246, 0.15));
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(29, 191, 115, 0.2);
+  animation: floatOrbit1 14s ease-in-out infinite;
+}
+
+/* Shape 2: Modern Donut Ring */
+.shape-2 {
+  width: 75px;
+  height: 75px;
+  top: 68%;
+  left: 12%;
+  border-radius: 50%;
+  border: 7px solid rgba(59, 130, 246, 0.25);
+  animation: spinFloat 16s linear infinite;
+}
+
+/* Shape 3: Rotated Glass Polygon / Diamond */
+.shape-3 {
+  width: 60px;
+  height: 60px;
+  top: 25%;
+  right: 14%;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(239, 68, 68, 0.12));
+  border-radius: 14px;
+  transform: rotate(45deg);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  animation: diamondDrift 19s ease-in-out infinite;
+}
+
+/* Shape 4: Angled Pill */
+.shape-4 {
+  width: 110px;
+  height: 38px;
+  bottom: 22%;
+  right: 18%;
+  border-radius: 50px;
+  background: linear-gradient(90deg, rgba(139, 92, 246, 0.22), rgba(59, 130, 246, 0.18));
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  animation: pillWiggle 15s ease-in-out infinite;
+}
+
+/* Shape 5: Accent Small Dot */
+.shape-5 {
+  width: 44px;
+  height: 44px;
+  top: 52%;
+  right: 6%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(29, 191, 115, 0.35), rgba(16, 185, 129, 0.15));
+  border: 1px solid rgba(29, 191, 115, 0.25);
+  animation: floatOrbit2 12s ease-in-out infinite;
+}
+
+/* Shape 6: Minimal Floating Cross / Star */
+.shape-6 {
+  width: 48px;
+  height: 48px;
+  top: 78%;
+  left: 45%;
+  border-radius: 10px;
+  background: rgba(59, 130, 246, 0.15);
+  transform: rotate(30deg);
+  border: 1px dashed rgba(59, 130, 246, 0.3);
+  animation: spinFloatReverse 24s linear infinite;
+}
+
+/* Floating Animations */
+@keyframes floatGlow1 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(60px, 40px) scale(1.08); }
+  100% { transform: translate(-30px, 70px) scale(0.96); }
+}
+@keyframes floatGlow2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-50px, -60px) scale(1.06); }
+  100% { transform: translate(40px, -30px) scale(0.95); }
+}
+@keyframes floatGlow3 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-40px, 50px) scale(1.12); }
+  100% { transform: translate(50px, -40px) scale(0.92); }
+}
+
+@keyframes floatOrbit1 {
+  0%   { transform: translateY(0px) rotate(0deg); }
+  50%  { transform: translateY(-24px) translateX(12px) rotate(180deg); }
+  100% { transform: translateY(0px) rotate(360deg); }
+}
+@keyframes floatOrbit2 {
+  0%   { transform: translateY(0px) translateX(0px); }
+  50%  { transform: translateY(-20px) translateX(-15px); }
+  100% { transform: translateY(0px) translateX(0px); }
+}
+@keyframes spinFloat {
+  0%   { transform: translateY(0) rotate(0deg); }
+  50%  { transform: translateY(-18px) rotate(180deg); }
+  100% { transform: translateY(0) rotate(360deg); }
+}
+@keyframes spinFloatReverse {
+  0%   { transform: translateY(0) rotate(360deg); }
+  50%  { transform: translateY(-22px) rotate(180deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+@keyframes diamondDrift {
+  0%   { transform: translateY(0) rotate(45deg); }
+  50%  { transform: translateY(-26px) translateX(-14px) rotate(75deg); }
+  100% { transform: translateY(0) rotate(45deg); }
+}
+@keyframes pillWiggle {
+  0%   { transform: translateY(0) rotate(-15deg); }
+  50%  { transform: translateY(-16px) translateX(10px) rotate(15deg); }
+  100% { transform: translateY(0) rotate(-15deg); }
+}
+
+/* Ensure content cards sit cleanly above background shapes */
+.main-content, .navbar, .footer {
+  position: relative;
+  z-index: 1;
+}
+
+
+/* SVG Symbol Shapes Styling & Placements */
+.shape-svg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.06));
+}
+
+/* 1. Lightning Bolt Symbol (SkillBridge Brand) */
+.shape-bolt {
+  top: 14%;
+  left: 22%;
+  color: #1dbf73;
+  animation: floatTilt 11s ease-in-out infinite;
+}
+
+/* 2. Code Brackets Symbol </ > (Tech / Developer) */
+.shape-code {
+  top: 36%;
+  left: 5%;
+  color: #3b82f6;
+  animation: floatDrift 17s ease-in-out infinite;
+}
+
+/* 3. Sparkle 1 (Premium / Creativity) */
+.shape-sparkle-1 {
+  top: 12%;
+  right: 26%;
+  color: #f59e0b;
+  animation: sparkleTwinkle 8s ease-in-out infinite;
+}
+
+/* 4. Sparkle 2 (Mini Accent) */
+.shape-sparkle-2 {
+  bottom: 28%;
+  left: 28%;
+  color: #8b5cf6;
+  animation: sparkleTwinkle 10s ease-in-out infinite 2s;
+}
+
+/* 5. Plus Symbol 1 */
+.shape-plus-1 {
+  top: 58%;
+  left: 18%;
+  color: #10b981;
+  animation: spinSlow 20s linear infinite;
+}
+
+/* 6. Plus Symbol 2 */
+.shape-plus-2 {
+  top: 22%;
+  right: 8%;
+  color: #6366f1;
+  animation: spinSlowReverse 22s linear infinite;
+}
+
+/* 7. Currency Symbol $ (Earnings / Marketplace) */
+.shape-currency {
+  bottom: 14%;
+  right: 10%;
+  color: #1dbf73;
+  animation: floatTilt 14s ease-in-out infinite 1s;
+}
+
+/* 8. 3D Isometric Cube (Work Projects / Delivery) */
+.shape-cube {
+  bottom: 35%;
+  right: 30%;
+  color: #3b82f6;
+  animation: cubeFloat 18s ease-in-out infinite;
+}
+
+/* 9. Star Symbol (Reviews / Top Quality) */
+.shape-star-sym {
+  top: 48%;
+  left: 36%;
+  color: #f59e0b;
+  animation: floatOrbit1 15s ease-in-out infinite 1.5s;
+}
+
+/* New Animations */
+@keyframes floatTilt {
+  0%   { transform: translateY(0px) rotate(0deg) scale(1); }
+  50%  { transform: translateY(-18px) translateX(8px) rotate(12deg) scale(1.08); }
+  100% { transform: translateY(0px) rotate(0deg) scale(1); }
+}
+@keyframes floatDrift {
+  0%   { transform: translateY(0px) translateX(0px) rotate(-6deg); }
+  50%  { transform: translateY(-22px) translateX(14px) rotate(8deg); }
+  100% { transform: translateY(0px) translateX(0px) rotate(-6deg); }
+}
+@keyframes sparkleTwinkle {
+  0%, 100% { transform: scale(0.9) rotate(0deg); opacity: 0.35; }
+  50%      { transform: scale(1.22) rotate(45deg); opacity: 0.65; }
+}
+@keyframes spinSlow {
+  from { transform: translateY(0) rotate(0deg); }
+  50%  { transform: translateY(-12px) rotate(180deg); }
+  to   { transform: translateY(0) rotate(360deg); }
+}
+@keyframes spinSlowReverse {
+  from { transform: translateY(0) rotate(360deg); }
+  50%  { transform: translateY(-14px) rotate(180deg); }
+  to   { transform: translateY(0) rotate(0deg); }
+}
+@keyframes cubeFloat {
+  0%   { transform: translateY(0) rotate(-8deg) scale(1); }
+  50%  { transform: translateY(-24px) translateX(-10px) rotate(10deg) scale(1.05); }
+  100% { transform: translateY(0) rotate(-8deg) scale(1); }
+}
