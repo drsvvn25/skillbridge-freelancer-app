@@ -2231,7 +2231,7 @@ body.dark-mode .nav-scroll-track {
   position: relative;
   display: block;
   width: 100%;
-  height: 80px;
+  height: 105px;
 }
 .cross-fill-path {
   fill: #fff;
@@ -2241,56 +2241,59 @@ body.dark-mode .cross-fill-path {
   fill: #0f172a;
 }
 /* =========================================================
-   Firing Flame Cross-Line Animation (Red/Yellow in Light, Green in Dark)
+   Firing Flame Cross-Line Animation (Bigger & High-Intensity)
    ========================================================= */
 
-/* Ambient Base Heat Curve */
+/* Ambient Base Heat Curve - Bigger Spread */
 .fire-flame-ambient {
   fill: none;
   stroke: url(#fireGradLight);
-  stroke-width: 8;
-  opacity: 0.35;
-  filter: blur(4px);
-  animation: heatPulse 2s ease-in-out infinite alternate;
+  stroke-width: 16;
+  opacity: 0.45;
+  filter: blur(8px);
+  animation: heatPulse 1.8s ease-in-out infinite alternate;
 }
 body.dark-mode .fire-flame-ambient {
   stroke: url(#fireGradDark);
-  opacity: 0.45;
-  filter: blur(5px);
+  stroke-width: 18;
+  opacity: 0.55;
+  filter: blur(10px);
 }
 
-/* Primary Fire Flame Stream with Firing Pulse */
+/* Primary Fire Flame Stream with Firing Pulse - Bigger & Thicker (7px to 9px) */
 .fire-flame-primary {
   fill: none;
   stroke: url(#fireGradLight);
-  stroke-width: 4;
+  stroke-width: 7;
   stroke-linecap: round;
-  stroke-dasharray: 45 15 25 12 60 18;
-  animation: flameDash 5s linear infinite, flameFlicker 1.8s ease-in-out infinite alternate;
-  filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.75)) drop-shadow(0 0 18px rgba(245, 158, 11, 0.6));
+  stroke-dasharray: 60 20 35 15 80 25;
+  animation: flameDash 4.5s linear infinite, flameFlicker 1.6s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 16px rgba(239, 68, 68, 0.9)) drop-shadow(0 0 30px rgba(245, 158, 11, 0.85)) drop-shadow(0 0 45px rgba(251, 191, 36, 0.6));
 }
 body.dark-mode .fire-flame-primary {
   stroke: url(#fireGradDark);
-  stroke-width: 4.5;
-  animation: flameDash 4.5s linear infinite, flameFlickerDark 1.6s ease-in-out infinite alternate;
-  filter: drop-shadow(0 0 12px rgba(34, 211, 126, 0.9)) drop-shadow(0 0 24px rgba(16, 185, 129, 0.65));
+  stroke-width: 8;
+  animation: flameDash 4s linear infinite, flameFlickerDark 1.4s ease-in-out infinite alternate;
+  filter: drop-shadow(0 0 18px rgba(34, 211, 126, 1)) drop-shadow(0 0 34px rgba(16, 185, 129, 0.85)) drop-shadow(0 0 50px rgba(74, 222, 128, 0.7));
 }
 
-/* Secondary Crackling Flame Sparks */
+/* Secondary Crackling Flame Sparks - Intense Core Lightning Fire */
 .fire-flame-sparks {
   fill: none;
-  stroke: #fef08a; /* Bright intense core spark */
-  stroke-width: 2.2;
+  stroke: #ffffff; /* Brilliant white-hot center core */
+  stroke-width: 3.5;
   stroke-linecap: round;
-  stroke-dasharray: 14 36 8 28 20 40;
-  animation: flameDashFast 2.2s linear infinite;
-  opacity: 0.95;
+  stroke-dasharray: 20 45 12 35 30 50;
+  animation: flameDashFast 1.8s linear infinite;
+  opacity: 1;
+  filter: drop-shadow(0 0 6px #fef08a);
 }
 body.dark-mode .fire-flame-sparks {
-  stroke: #bbf7d0; /* Bright mint core fire spark */
-  stroke-width: 2.5;
-  animation: flameDashFast 2s linear infinite;
-  opacity: 0.95;
+  stroke: #ffffff;
+  stroke-width: 4;
+  animation: flameDashFast 1.6s linear infinite;
+  opacity: 1;
+  filter: drop-shadow(0 0 8px #86efac);
 }
 
 /* Flame Animations */
@@ -2303,14 +2306,14 @@ body.dark-mode .fire-flame-sparks {
   100% { stroke-dashoffset: 0; }
 }
 @keyframes flameFlicker {
-  0%   { stroke-width: 3.5; opacity: 0.85; filter: drop-shadow(0 0 8px rgba(239,68,68,0.7)); }
-  50%  { stroke-width: 5;   opacity: 1;    filter: drop-shadow(0 0 15px rgba(245,158,11,0.9)) drop-shadow(0 0 25px rgba(239,68,68,0.6)); }
-  100% { stroke-width: 4;   opacity: 0.9;  filter: drop-shadow(0 0 10px rgba(249,115,22,0.8)); }
+  0%   { stroke-width: 6;   opacity: 0.85; filter: drop-shadow(0 0 14px rgba(239,68,68,0.85)); }
+  50%  { stroke-width: 9;   opacity: 1;    filter: drop-shadow(0 0 24px rgba(245,158,11,1)) drop-shadow(0 0 40px rgba(239,68,68,0.8)); }
+  100% { stroke-width: 7.5; opacity: 0.92; filter: drop-shadow(0 0 18px rgba(249,115,22,0.9)); }
 }
 @keyframes flameFlickerDark {
-  0%   { stroke-width: 4;   opacity: 0.88; filter: drop-shadow(0 0 10px rgba(16,185,129,0.8)); }
-  50%  { stroke-width: 5.5; opacity: 1;    filter: drop-shadow(0 0 18px rgba(34,211,126,1)) drop-shadow(0 0 30px rgba(74,222,128,0.7)); }
-  100% { stroke-width: 4.5; opacity: 0.92; filter: drop-shadow(0 0 12px rgba(16,185,129,0.85)); }
+  0%   { stroke-width: 7;   opacity: 0.9;  filter: drop-shadow(0 0 16px rgba(16,185,129,0.9)); }
+  50%  { stroke-width: 10.5; opacity: 1;   filter: drop-shadow(0 0 26px rgba(34,211,126,1)) drop-shadow(0 0 45px rgba(74,222,128,0.85)); }
+  100% { stroke-width: 8;   opacity: 0.95; filter: drop-shadow(0 0 20px rgba(16,185,129,0.95)); }
 }
 @keyframes heatPulse {
   0%   { opacity: 0.25; transform: scaleY(0.95); }
@@ -2542,7 +2545,7 @@ body.dark-mode .bottom-cross-fill {
   width: 100%;
   overflow: hidden;
   line-height: 0;
-  margin: -35px 0 -35px 0;
+  margin: -48px 0 -48px 0;
   z-index: 5;
   pointer-events: none;
 }
@@ -2550,7 +2553,7 @@ body.dark-mode .bottom-cross-fill {
   position: relative;
   display: block;
   width: 100%;
-  height: 70px;
+  height: 95px;
 }
 .partition-badge {
   position: absolute;
@@ -2575,4 +2578,90 @@ body.dark-mode .bottom-cross-fill {
   .partition-badge {
     display: none;
   }
+}
+
+
+/* =========================================================
+   Alternating Section Backgrounds (Light & Dark Theme)
+   ========================================================= */
+
+/* Light Mode Alternating Sections */
+/* 1. Hero: Deep Tech Midnight (#0f172a to #1e293b) */
+/* 2. Section How It Works: Crisp Pure White (#ffffff) */
+.section-how {
+  background: #ffffff !important;
+}
+.section-how .step-card {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* 3. Section Categories: Alternating Soft Slate Tint (#f1f5f9) */
+.section-categories {
+  background: #f1f5f9 !important;
+}
+.section-categories .cat-card {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+.section-categories .cat-card:hover {
+  background: #e8faf2 !important;
+}
+
+/* 4. Section Features (Why SkillBridge): Alternating Crisp White (#ffffff) */
+.section-features {
+  background: #ffffff !important;
+}
+.section-features .feature-card {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+.section-features .feature-card--large {
+  background: linear-gradient(135deg, #0f172a, #1e293b) !important;
+}
+
+/* 5. Section CTA: Alternating Soft Slate Tint (#f1f5f9) */
+.section-cta {
+  background: #f1f5f9 !important;
+}
+
+/* 6. Footer: Dark Anchor (#0f172a) */
+
+
+/* Dark Mode Alternating Sections (Rhythm between #0f172a, #152238, #0b1120) */
+body.dark-mode .section-how {
+  background: #0f172a !important; /* Deep Navy */
+}
+body.dark-mode .section-how .step-card {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+body.dark-mode .section-categories {
+  background: #16243b !important; /* Alternating Lighter Steel Navy */
+}
+body.dark-mode .section-categories .cat-card {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+body.dark-mode .section-categories .cat-card:hover {
+  background: #243550 !important;
+  border-color: var(--brand) !important;
+}
+
+body.dark-mode .section-features {
+  background: #0f172a !important; /* Alternating Deep Navy */
+}
+body.dark-mode .section-features .feature-card {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+body.dark-mode .section-cta {
+  background: #16243b !important; /* Alternating Lighter Steel Navy */
+}
+
+body.dark-mode .home-footer {
+  background: #0b1120 !important; /* Pure Deep Obsidian */
 }
