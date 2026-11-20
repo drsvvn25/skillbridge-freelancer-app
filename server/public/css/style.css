@@ -1905,9 +1905,17 @@ body.dark-mode .bg-shape {
 }
 
 /* Ensure content cards sit cleanly above background shapes */
-.main-content, .navbar, .footer {
+/* Ensure main content and footer sit cleanly above background shapes without trapping navbar dropdowns */
+.main-content, .footer {
   position: relative;
   z-index: 1;
+}
+.navbar {
+  position: fixed;
+  z-index: 1000;
+}
+.dropdown-menu, .currency-menu, .notif-panel {
+  z-index: 1100;
 }
 
 
