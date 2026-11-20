@@ -3,12 +3,17 @@
 <div align="center">
 
 ![SkillBridge](https://img.shields.io/badge/SkillBridge-Freelance%20Marketplace-1dbf73?style=for-the-badge)
-![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-Express%205-339933?style=for-the-badge&logo=node.js&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
+![Google Gemini](https://img.shields.io/badge/Google%20Gemini-2.5%20Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)
+![n8n](https://img.shields.io/badge/n8n-AI%20Workflow%20Automation-EA4B71?style=for-the-badge&logo=n8n&logoColor=white)
 ![AngularJS](https://img.shields.io/badge/AngularJS-1.8-E23237?style=for-the-badge&logo=angularjs&logoColor=white)
+![Render](https://img.shields.io/badge/Deploy-Render%20Live-46E3B7?style=for-the-badge&logo=render&logoColor=white)
 
-**A full-stack freelance marketplace platform connecting clients with skilled freelancers.**
-Post tasks, receive proposals, track project phases, and communicate — all in one place.
+**A modern full-stack freelance marketplace platform powered by an intelligent, event-driven AI workflow engine.**  
+Post tasks, receive competitive bids, track milestone phases, chat in real-time, and get AI assistance via **SkillBot** (integrated with **n8n Workflow Automation** & **Google Gemini AI**).
+
+[🌐 View Live Deployment on Render](https://skillbridge-freelancer-app.onrender.com/)
 
 </div>
 
@@ -16,678 +21,315 @@ Post tasks, receive proposals, track project phases, and communicate — all in 
 
 ## 📋 Table of Contents
 
-- [About the Project](#-about-the-project)
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Prerequisites](#-prerequisites)
-- [Installation & Setup](#-installation--setup)
-- [Environment Variables](#-environment-variables)
-- [Running the Application](#-running-the-application)
-- [Application Pages & Routes](#-application-pages--routes)
-- [API Endpoints](#-api-endpoints)
-- [Authentication Flow](#-authentication-flow)
-- [Email Notifications](#-email-notifications)
-- [User Roles](#-user-roles)
-- [Troubleshooting](#-troubleshooting)
+- [🌟 Project Overview](#-project-overview)
+- [🤖 SkillBot: n8n + Gemini AI Architecture](#-skillbot-n8n--gemini-ai-architecture)
+- [✨ Core Features](#-core-features)
+- [🛠 Tech Stack](#-tech-stack)
+- [📐 System Architecture](#-system-architecture)
+- [📁 Project Structure](#-project-structure)
+- [⚙️ Environment Variables](#️-environment-variables)
+- [🚀 Quick Start & Installation](#-quick-start--installation)
+- [🔄 n8n AI Workflow Setup Guide](#-n8n-ai-workflow-setup-guide)
+- [☁️ Cloud Deployment (Render & GitHub)](#️-cloud-deployment-render--github)
+- [🛣 API Endpoints Reference](#-api-endpoints-reference)
+- [🔒 Authentication & Email Notifications](#-authentication--email-notifications)
+- [❓ Frequently Asked Questions & Troubleshooting](#-frequently-asked-questions--troubleshooting)
 
 ---
 
-## 🌟 About the Project
+## 🌟 Project Overview
 
-**SkillBridge** is a mini Fiverr-like freelance marketplace where:
-- **Clients** post tasks/projects with budgets
-- **Freelancers** browse and apply with proposals
-- Tasks are tracked through **milestone phases**
-- Real-time **messaging** between client and freelancer
-- Secure **OTP-based login** via email for every session
-- **Leaderboard** showing top-performing freelancers
-
-## 🚀 Latest 2026 Project Updates
-
-- 📧 **Multi-Strategy Email Delivery Engine**: Combines **Gmail SMTP (Ports 465 SSL & 587 STARTTLS)** with an **EmailJS HTTPS REST API Backup (Port 443)** for sub-second, 100% reliable OTP delivery on cloud providers like Render where raw SMTP ports are restricted.
-- 🔑 **Demo / Emergency Master OTP (`123456`)**: Added fallback demo OTP support for seamless local and cloud testing without getting blocked by mail server throttling.
-- 🇮🇳 **Seeded Indian Demo Datasets**: Populated the MongoDB database with **10 realistic Indian user profiles** (4 Clients, 6 Freelancers), sample tasks, proposals/bids, real-time chat messages, and milestone submissions.
-- 🌐 **MongoDB Atlas Cloud Connection**: Updated database configuration to target `skillbridge_db` on MongoDB Atlas with automatic public DNS fallback for SRV lookup resolution (`8.8.8.8`).
-- ⚡ **Non-Blocking Network Socket Race**: Optimized async route handlers with a `Promise.race` 2.5-second timeout, ensuring the user interface responds instantly without hanging on "Sending OTP...".
-- 📅 **Updated System Year (2026)**: All copyright headers, system footers, and templates updated for **2026**.
+**SkillBridge** provides an end-to-end freelancing marketplace experience:
+- **Clients**: Post customized tasks with structured milestone phases, review incoming bids, and manage project lifecycles.
+- **Freelancers**: Discover open gigs, match required skills, submit bids, deliver milestone work, and compete on the platform leaderboard.
+- **Milestone Phase Engine**: Automated milestone status tracking with real-time penalty calculations for overdue deliveries.
+- **SkillBot AI Assistant**: An intelligent chatbot powered by **n8n workflow automation** and **Google Gemini 2.5 Flash**, offering natural human conversation, platform recommendations, and automated 6-hour quota management.
 
 ---
 
-## ✨ Features
+## 🤖 SkillBot: n8n + Gemini AI Architecture
+
+SkillBridge features an enterprise-grade, **decoupled low-code AI pipeline**:
+
+```
+                               ┌────────────────────────────────────────────────────────┐
+                               │                    User Message                        │
+                               └───────────────────────────┬────────────────────────────┘
+                                                           │
+                                                           ▼
+                                      ┌─────────────────────────────────────────┐
+                                      │       Chatbot API (/api/chatbot)        │
+                                      │  • Checks 3-query limit (6-hour refill) │
+                                      │  • Builds dynamic DB context prompt     │
+                                      └────────────────────┬────────────────────┘
+                                                           │
+                                             Is N8N_WEBHOOK_URL Configured?
+                                                           │
+                             ┌─────────────────────────────┴─────────────────────────────┐
+                             │ YES                                                       │ NO (or Webhook Timeout)
+                             ▼                                                           ▼
+              ┌─────────────────────────────┐                             ┌─────────────────────────────┐
+              │    Primary: n8n Webhook     │                             │   Direct Cloud AI Fallback  │
+              │  • Node 1: Catch Webhook    │                             │  • Native Google GenAI SDK  │
+              │  • Node 2: Prepare Payload  │                             │  • Model: gemini-2.5-flash  │
+              │  • Node 3: Gemini API Call  │                             │  • Resilient multi-model    │
+              │  • Node 4: Extract & Return │                             │    fallback (24/7 uptime)   │
+              └──────────────┬──────────────┘                             └──────────────┬──────────────┘
+                             │                                                           │
+                             └─────────────────────────────┬─────────────────────────────┘
+                                                           │
+                                                           ▼
+                                      ┌─────────────────────────────────────────┐
+                                      │      Chatbot Displays AI Response       │
+                                      │   *(📊 2 AI queries remaining · 6h)*    │
+                                      └─────────────────────────────────────────┘
+```
+
+### Key AI Highlights:
+1. **Low-Code Middleware (n8n)**:
+   - Visual drag-and-drop workflow handling prompt preprocessing and AI API execution.
+   - Non-technical team members can modify prompts or swap AI models without touching server code.
+2. **High-Availability Circuit Breaker (Method 3)**:
+   - If n8n is offline or unreachable from the cloud (e.g. deployed on Render), the server automatically and seamlessly routes queries to the **direct Google GenAI SDK**.
+3. **Session Rate Limiting & 6-Hour Refill**:
+   - Each user gets **3 AI queries** per window.
+   - Automatically refills every **6 hours** with dynamic countdown calculation (`5h 30m remaining`).
+   - Administrative override: Type `reset limit` in chat to refresh instantly for testing.
+
+---
+
+## ✨ Core Features
 
 | Feature | Description |
 |---|---|
-| 🔐 **OTP Login & Demo OTP** | Two-factor authentication via email OTP + fallback demo code `123456` |
-| 🌐 **Resilient Email Engine** | Automatic fallback between Gmail SMTP (SSL/STARTTLS) and EmailJS HTTPS REST API |
-| 🏠 **Landing Page** | Modern 2026 landing page with categories, feature cards, and CTAs |
-| 📋 **Task Marketplace** | Browse open tasks with real-time filtering by category, budget, and status |
-| 📝 **Post a Task** | Clients post tasks with milestone phases, budget, and required skills |
-| 🤝 **Proposals & Bidding** | Freelancers apply with custom proposals and competitive bid amounts |
-| 📊 **Phase Tracking** | Milestone tracking with deliverable file uploads and approval workflows |
-| 💬 **Real-Time Messaging** | In-task messaging between client and assigned freelancer |
-| 🏆 **Leaderboard** | Top-performing freelancers ranked by completed tasks and ratings |
-| 👤 **User Profiles** | Profile management with skills, bio, ratings, and task history |
-| ⚡ **Penalty Engine** | Background worker that auto-calculates penalties for overdue milestone phases |
-| 🇮🇳 **Indian Seed Data** | Pre-seeded with 10 Indian client & freelancer profiles for testing |
+| 🤖 **SkillBot AI Assistant** | Low-code n8n & Google Gemini AI chatbot answering general & platform questions with dynamic user quota |
+| 🔐 **OTP Authentication** | Two-factor passwordless authentication using multi-strategy delivery (SMTP + EmailJS REST API) |
+| 🔑 **Demo Master Code** | Pre-configured `123456` bypass for quick testing without waiting on mailbox queues |
+| 📋 **Task Marketplace** | Live task feed with real-time category filtering, urgency flags, budget sort, and skill badges |
+| 📝 **Milestone Phase Creator** | Clients configure multi-step project phases with custom deadlines and deliverables |
+| 🤝 **Proposal & Bidding** | Freelancers apply with custom proposals, projected completion dates, and pricing |
+| 💬 **In-Task Messaging** | Real-time chat system connecting clients and freelancers directly inside active tasks |
+| ⚡ **Automatic Penalty Engine** | Background scheduler monitoring overdue phases and calculating penalty deductions |
+| 🏆 **Freelancer Leaderboard** | Public rankings based on completed project counts, earnings, and client ratings |
+| 👤 **User Profiles & Skills** | Editable profiles featuring bios, skill tags, user types, and past work history |
+| 🇮🇳 **Pre-Seeded Indian Demo Data** | 10 realistic seeded profiles (4 clients, 6 freelancers) with real projects and chat histories |
 
 ---
 
 ## 🛠 Tech Stack
 
 ### Backend
-| Technology | Version | Purpose |
-|---|---|---|
-| **Node.js** | v18+ | Runtime environment |
-| **Express.js** | v5.x | Web framework |
-| **MongoDB** | Atlas / Local | Database |
-| **Mongoose** | v9.x | MongoDB ODM |
-| **JWT** | v9.x | Authentication tokens |
-| **bcryptjs** | v3.x | Password hashing |
-| **Nodemailer** | v9.x | Email sending (OTP, notifications) |
-| **Multer** | v2.x | File uploads |
-| **dotenv** | v17.x | Environment variables |
-| **nodemon** | v3.x | Dev auto-restart |
+- **Node.js** (v20+ / v22 LTS) & **Express 5**
+- **MongoDB Atlas** with **Mongoose ODM**
+- **Google GenAI SDK** (`@google/genai`) — Gemini 2.5 Flash
+- **n8n Workflow Automation** (Self-hosted / Cloud Webhooks)
+- **JSON Web Tokens (JWT)** & **Bcrypt.js**
+- **Nodemailer** & **EmailJS REST API**
 
 ### Frontend
-| Technology | Version | Purpose |
-|---|---|---|
-| **AngularJS** | 1.8.3 | SPA framework (loaded via CDN) |
-| **ngRoute** | 1.8.3 | Client-side routing |
-| **ngAnimate** | 1.8.3 | Page animations |
-| **Vanilla CSS** | — | Styling (no CSS frameworks) |
-| **Google Fonts** | — | Inter + Plus Jakarta Sans typography |
+- **AngularJS (1.8)** SPA Architecture
+- **HTML5**, **CSS3 (Custom Glassmorphism Design)**, **Bootstrap Icons**
+- Responsive Mobile-First Design
+- In-memory conversation and session state managers
 
 ---
 
 ## 📁 Project Structure
 
-```
+```text
 Freelancer_Mini_Market_Platform/
-│
-├── server/                           # All backend + frontend code
-│   ├── server.js                     # Express app entry point
-│   ├── seed.js                       # Database seeder (auto-runs if DB empty)
-│   ├── .env                          # Environment variables (create this yourself)
-│   ├── package.json                  # Dependencies and npm scripts
-│   │
+├── package.json                 # Root dependencies & project config
+├── README.md                    # Project documentation
+├── server/
+│   ├── .env                     # Environment variables (Mongo, Gemini, n8n, Email)
+│   ├── package.json             # Backend dependencies
+│   ├── server.js                # Express app entry point & static file server
+│   ├── seed.js                  # Database seeder (10 Indian users + tasks + chats)
+│   ├── config/                  # Configuration files
+│   ├── controllers/             # API request handlers
 │   ├── middleware/
-│   │   └── auth.js                   # JWT authentication middleware
-│   │
-│   ├── models/                       # Mongoose database schemas
-│   │   ├── User.js                   # User schema (client / freelancer)
-│   │   ├── Otp.js                    # OTP schema (auto-expires in 10 mins via TTL)
-│   │   ├── Task.js                   # Task/project schema
-│   │   ├── TaskApplication.js        # Freelancer proposals
-│   │   ├── Message.js                # In-task chat messages
-│   │   └── Submission.js             # Phase deliverable submissions
-│   │
-│   ├── routes/                       # REST API route handlers
-│   │   ├── auth.js                   # Register, Login (OTP), Verify OTP
-│   │   ├── tasks.js                  # Task CRUD, stats, leaderboard
-│   │   ├── applications.js           # Proposals, accept application
-│   │   ├── messages.js               # In-task messaging
-│   │   ├── phases.js                 # Phase templates by category
-│   │   ├── submissions.js            # Phase submissions and approvals
-│   │   └── users.js                  # User profile management
-│   │
+│   │   ├── auth.js              # JWT verification middleware
+│   │   └── visitorTracker.js    # IP & visitor tracking middleware
+│   ├── models/
+│   │   ├── User.js              # User model (Clients & Freelancers)
+│   │   ├── Task.js              # Task model with nested milestone phases
+│   │   ├── TaskApplication.js   # Bids and proposals
+│   │   ├── Message.js           # Real-time task chat logs
+│   │   └── Otp.js               # One-time login tokens
+│   ├── routes/
+│   │   ├── auth.js              # Signup, OTP send, OTP verify, login
+│   │   ├── tasks.js             # Task CRUD and assignment
+│   │   ├── chatbot.js           # SkillBot route with 6-hour quota engine
+│   │   └── messages.js          # In-task communication
 │   ├── utils/
-│   │   ├── emailService.js           # HTML email templates via Nodemailer
-│   │   ├── penaltyEngine.js          # Background engine for overdue tasks
-│   │   └── phaseTemplates.js         # Milestone phase templates per category
-│   │
-│   ├── uploads/                      # Uploaded files (auto-created on startup)
-│   │
-│   └── public/                       # Frontend — AngularJS SPA
-│       ├── index.html                # Main HTML shell (loads all scripts)
-│       ├── app.js                    # Angular module, routes, all services
-│       │
-│       ├── css/
-│       │   └── style.css             # Complete stylesheet (premium white theme)
-│       │
-│       ├── views/                    # Angular HTML page templates
-│       │   ├── home.html             # Public landing page
-│       │   ├── login.html            # Login form + OTP verification step
-│       │   ├── register.html         # User registration form
-│       │   ├── marketplace.html      # Task listing with filters
-│       │   ├── dashboard.html        # User dashboard with stats
-│       │   ├── post-task.html        # Post a new task (clients)
-│       │   ├── messages.html         # Task-specific messaging
-│       │   ├── leaderboard.html      # Top freelancers ranking
-│       │   └── profile.html          # User profile edit page
-│       │
-│       └── controllers/              # Angular page controllers
-│           ├── homeCtrl.js           # Landing page controller
-│           ├── authCtrl.js           # Login, Register, OTP controller
-│           ├── marketplaceCtrl.js    # Task browsing + apply
-│           ├── dashboardCtrl.js      # Dashboard stats + task management
-│           ├── postTaskCtrl.js       # Post task form
-│           ├── messagesCtrl.js       # Real-time messaging
-│           ├── leaderboardCtrl.js    # Leaderboard display
-│           ├── profileCtrl.js        # Profile view and edit
-│           └── rootCtrl.js           # Global: navbar, notifications, menus
-│
-└── README.md
+│   │   ├── zapierAI.js          # Unified AI caller: n8n webhook + Gemini fallback
+│   │   ├── penaltyEngine.js     # Background SLA and penalty calculator
+│   │   └── phaseTemplates.js    # Default milestone templates by category
+│   └── public/                  # AngularJS Single Page Application
+│       ├── index.html           # Main HTML shell
+│       ├── views/               # Route views (marketplace, dashboard, post-task, etc.)
+│       └── controllers/         # AngularJS controllers (dashboardCtrl, taskCtrl, etc.)
 ```
 
 ---
 
-## ✅ Prerequisites
+## ⚙️ Environment Variables
 
-Make sure the following are installed before running the project:
-
-| Tool | Minimum Version | Download Link |
-|---|---|---|
-| **Node.js** | v18.0.0 | https://nodejs.org |
-| **npm** | v9.0.0 | Included with Node.js |
-| **Git** | Any | https://git-scm.com |
-| **MongoDB Atlas account** | — | https://mongodb.com/atlas |
-
-Verify your installations:
-```bash
-node --version    # should print v18.x.x or higher
-npm --version     # should print v9.x.x or higher
-```
-
----
-
-## ⚙️ Installation & Setup
-
-Follow these steps exactly in order.
-
----
-
-### Step 1 — Get the Project Files
-
-**Option A — Clone from Git:**
-```bash
-git clone https://github.com/your-username/skillbridge.git
-cd skillbridge
-```
-
-**Option B — Already have the folder:**
-Open a terminal/PowerShell window inside the project root folder.
-
----
-
-### Step 2 — Go to the Server Folder
-
-```bash
-cd server
-```
-
-> All backend and frontend files are inside `server/`. This is where you run all commands.
-
----
-
-### Step 3 — Install All Dependencies
-
-```bash
-npm install
-```
-
-This will install all required packages from `package.json`. Wait for it to complete — it may take 1-2 minutes.
-
----
-
-### Step 4 — Set Up MongoDB Atlas (Cloud Database)
-
-1. Go to **https://mongodb.com/atlas** and create a free account
-2. Click **Create a Deployment** → choose **M0 Free Tier** → select a region
-3. Create a **Database User**:
-   - Username: `skillbridge_user` (or any name)
-   - Password: create a strong password — **save it**
-4. Under **Network Access** → click **Add IP Address** → choose **Allow Access from Anywhere** (`0.0.0.0/0`)
-5. Go to your Cluster → click **Connect** → **Drivers**
-6. Select **Node.js** → copy the connection string, it looks like:
-   ```
-   mongodb+srv://skillbridge_user:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
-   ```
-7. Replace `<password>` with your actual DB user password
-8. Save this connection string — you'll need it in the next step
-
----
-
-### Step 5 — Set Up Gmail App Password (for OTP Emails)
-
-> The app sends OTP emails via Gmail. You MUST use a Gmail **App Password**, not your regular password.
-
-1. Log in to your Google Account at **https://myaccount.google.com**
-2. Click **Security** in the left sidebar
-3. Under "How you sign in to Google", click **2-Step Verification** → Enable it
-4. Go back to **Security** → search for **App passwords** at the bottom
-5. Click **App passwords** → Select app: **Mail** → Select device: **Windows Computer**
-6. Click **Generate** → Copy the **16-character password** shown (e.g. `abcd efgh ijkl mnop`)
-7. Save this password — it will only be shown once
-
----
-
-### Step 6 — Create the `.env` File
-
-Inside the `server/` folder, create a file named `.env` (no extension):
-
-```bash
-# Windows PowerShell
-New-Item .env -ItemType File
-
-# Or just create it manually in VS Code / Notepad
-```
-
-Paste the following content and fill in your values:
+Create or update `server/.env`:
 
 ```env
 PORT=5000
-MONGODB_URI=mongodb+srv://your_user:your_password@cluster0.xxxxx.mongodb.net/skillbridge?retryWrites=true&w=majority
-JWT_SECRET=MySkillBridgeSecretKey2026ChangeMeInProduction
-EMAIL_USER=your_gmail_address@gmail.com
-EMAIL_PASS=your_16_character_app_password
+
+# Database
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/skillbridge_db?retryWrites=true&w=majority
+
+# Security
+JWT_SECRET=your_super_secret_jwt_key_here
+
+# AI & Automation
+GEMINI_API_KEY=your_google_gemini_api_key_here
+GEMINI_MODEL=gemini-2.5-flash
+
+# n8n AI Webhook (Local or Tunnel)
+# Leave blank or omit on Render for 24/7 direct Gemini cloud mode
+N8N_WEBHOOK_URL=http://localhost:5678/webhook/skillbridge-chatbot
+
+# Email Notifications (Gmail SMTP or EmailJS REST API)
+EMAILJS_SERVICE_ID=service_xxxx
+EMAILJS_TEMPLATE_ID=template_xxxx
+EMAILJS_PUBLIC_KEY=xxxx
+EMAILJS_PRIVATE_KEY=xxxx
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_gmail_app_password
 ```
 
-> ⚠️ **Important:** Never share your `.env` file. Never commit it to GitHub.
-
 ---
 
-## 🔑 Environment Variables — Full Reference
+## 🚀 Quick Start & Installation
 
-| Variable | Required | Example | Description |
-|---|---|---|---|
-| `PORT` | ✅ | `5000` | Port the Express server listens on |
-| `MONGODB_URI` | ✅ | `mongodb+srv://...` | Full MongoDB connection string |
-| `JWT_SECRET` | ✅ | `MySecretKey123` | Secret for signing JWT tokens. Use a long random string in production |
-| `EMAIL_USER` | ✅ | `you@gmail.com` | Gmail address used to send OTP and notification emails |
-| `EMAIL_PASS` | ✅ | `abcd efgh ijkl mnop` | Gmail App Password (16 characters) — NOT your Gmail login password |
+### 1. Clone the Repository
+```bash
+git clone https://github.com/drsvvn25/skillbridge-freelancer-app.git
+cd skillbridge-freelancer-app
+```
 
----
-
-## 🚀 Running the Application
-
-### Development Mode (Recommended)
-
+### 2. Install Dependencies
 ```bash
 cd server
-npm run dev
-```
-
-- Uses **nodemon** — server automatically restarts when you edit and save any file
-- You will see in the terminal:
-  ```
-  🚀 Server running at http://localhost:5000
-  ✅ Connected to MongoDB
-  ```
-
-### Production Mode
-
-```bash
-cd server
-npm start
-```
-
-### Seed the Database Manually
-
-```bash
-cd server
-npm run seed
-```
-
-> 💡 The database is **seeded automatically** on first startup if it's empty. You do not need to run this manually unless you want to reset the data.
-
----
-
-## 🇮🇳 Seeded Indian Accounts & Credentials
-
-The database comes pre-populated with **10 Indian user accounts** across all platform roles. 
-
-🔑 **Password for ALL accounts:** `password123`  
-🔑 **Demo Master OTP (if email is unconfigured):** `123456`
-
-### Clients (Task Creators)
-| Full Name | Role | Email Address | Location & Bio |
-| :--- | :--- | :--- | :--- |
-| **Rajesh Sharma** | Client | `rajesh.sharma@example.com` | CEO & Founder at TechSolutions India (Mumbai) |
-| **Sunita Kapoor** | Client | `sunita.kapoor@example.com` | Managing Director at CraftVeda Organics (Jaipur) |
-| **Vikramaditya Verma** | Client | `vikram.verma@example.com` | Founder of Apex Retail Solutions (Bengaluru) |
-| **Anita Deshmukh** | Client | `anita.deshmukh@example.com` | Product Head at GreenEarth Innovations (Pune) |
-
-### Freelancers (Service Providers)
-| Full Name | Badge | Rating | Email Address | Skills & Bio |
-| :--- | :--- | :--- | :--- | :--- |
-| **Aarav Patel** | ⭐ Premium | 4.9 / 5 | `aarav.patel@example.com` | React, Node.js, MongoDB, AWS (Mumbai) |
-| **Priya Iyer** | ⭐ Premium | 4.8 / 5 | `priya.iyer@example.com` | Figma, UI/UX, Logo Design, Branding (Chennai) |
-| **Rohan Mehta** | Standard | 4.7 / 5 | `rohan.mehta@example.com` | Python, Django, Machine Learning (Hyderabad) |
-| **Ananya Singh** | Standard | 4.6 / 5 | `ananya.singh@example.com` | SEO, Content Writing, Copywriting (Delhi NCR) |
-| **Devansh Joshi** | Standard | 4.5 / 5 | `devansh.joshi@example.com` | Flutter, React Native, Mobile Apps (Ahmedabad) |
-| **Ishita Nair** | Standard | 4.8 / 5 | `ishita.nair@example.com` | Video Editing, Motion Graphics, After Effects (Kochi) |
-
----
-
-### Open the App in Browser
-
-After the server starts, open:
-
-```
-http://localhost:5000
-```
-
-You will land on the **SkillBridge Home Page** automatically.
-
-> **Important:** Always use `http://localhost:5000` as the entry URL — not `/home`, `/login`, or any sub-path directly.
-
----
-
-## 📄 Application Pages & Routes
-
-### Public Pages (Accessible without login)
-
-| URL | Page | Description |
-|---|---|---|
-| `http://localhost:5000` | 🏠 Home | Landing page — hero, features, categories, CTA |
-| `http://localhost:5000/#!/login` | 🔐 Login | Email + Password → OTP step |
-| `http://localhost:5000/#!/register` | 📝 Register | Create a new Client or Freelancer account |
-
-### Protected Pages (Login required)
-
-| URL | Page | Who Can Access |
-|---|---|---|
-| `http://localhost:5000/#!/marketplace` | 🛒 Marketplace | All logged-in users |
-| `http://localhost:5000/#!/dashboard` | 📊 Dashboard | All logged-in users |
-| `http://localhost:5000/#!/post-task` | ➕ Post Task | Clients only |
-| `http://localhost:5000/#!/messages/:taskId` | 💬 Messages | Task participants |
-| `http://localhost:5000/#!/leaderboard` | 🏆 Leaderboard | All logged-in users |
-| `http://localhost:5000/#!/profile` | 👤 Profile | All logged-in users |
-
----
-
-## 🔌 API Endpoints — Complete Reference
-
-All API routes are prefixed with `/api`. All protected routes require:
-```
-Authorization: Bearer <your_jwt_token>
-```
-
----
-
-### 🔐 Auth — `/api/auth`
-
-| Method | Endpoint | Auth Required | Request Body | Description |
-|---|---|---|---|---|
-| `POST` | `/api/auth/register` | ❌ | `{ email, password, full_name, user_type }` | Register new user |
-| `POST` | `/api/auth/login` | ❌ | `{ email, password }` | Step 1: Validate & send OTP |
-| `POST` | `/api/auth/verify-otp` | ❌ | `{ email, otp }` | Step 2: Verify OTP, get JWT |
-| `POST` | `/api/auth/resend-otp` | ❌ | `{ email }` | Resend OTP to email |
-| `GET` | `/api/auth/me` | ✅ | — | Get current user profile |
-
----
-
-### 📋 Tasks — `/api/tasks`
-
-| Method | Endpoint | Auth Required | Description |
-|---|---|---|---|
-| `GET` | `/api/tasks` | ✅ | Get all tasks (supports query filters) |
-| `POST` | `/api/tasks` | ✅ | Create a new task (client only) |
-| `GET` | `/api/tasks/stats` | ✅ | Get dashboard statistics |
-| `GET` | `/api/tasks/leaderboard` | ✅ | Get top freelancer leaderboard |
-| `GET` | `/api/tasks/:id` | ✅ | Get a single task by ID |
-| `PATCH` | `/api/tasks/:id` | ✅ | Update task details |
-| `PATCH` | `/api/tasks/:id/assign` | ✅ | Assign freelancer to task |
-| `PATCH` | `/api/tasks/:id/phases` | ✅ | Update a task phase status |
-
-**Query Filters for GET `/api/tasks`:**
-```
-?category=design
-?status=open
-?minBudget=100&maxBudget=500
-?search=keyword
-```
-
----
-
-### 🤝 Applications — `/api/applications`
-
-| Method | Endpoint | Auth Required | Request Body | Description |
-|---|---|---|---|---|
-| `POST` | `/api/applications` | ✅ | `{ task_id, proposal_text, bid_amount }` | Apply to a task |
-| `PATCH` | `/api/applications/:id/accept` | ✅ | — | Accept a freelancer application |
-
----
-
-### 💬 Messages — `/api/messages`
-
-| Method | Endpoint | Auth Required | Description |
-|---|---|---|---|
-| `GET` | `/api/messages/task/:taskId` | ✅ | Get all messages for a task |
-| `POST` | `/api/messages` | ✅ | Send a message |
-| `PATCH` | `/api/messages/read/:taskId` | ✅ | Mark task messages as read |
-| `DELETE` | `/api/messages/task/:taskId` | ✅ | Delete all messages for a task |
-| `GET` | `/api/messages/unread-count` | ✅ | Get total unread message count |
-| `GET` | `/api/messages/notifications` | ✅ | Get message notifications list |
-
----
-
-### 👤 Users — `/api/users`
-
-| Method | Endpoint | Auth Required | Description |
-|---|---|---|---|
-| `GET` | `/api/users/me` | ✅ | Get own full profile |
-| `PATCH` | `/api/users/me` | ✅ | Update own profile (bio, skills) |
-| `GET` | `/api/users/leaderboard` | ✅ | Get user-based leaderboard |
-
----
-
-### 📊 Phases — `/api/phases`
-
-| Method | Endpoint | Auth Required | Description |
-|---|---|---|---|
-| `GET` | `/api/phases` | ✅ | Get phase templates for a category |
-| `GET` | `/api/phases/categories` | ✅ | Get all available task categories |
-
----
-
-### 📎 Submissions — `/api/submissions`
-
-| Method | Endpoint | Auth Required | Description |
-|---|---|---|---|
-| `GET` | `/api/submissions/task/:taskId` | ✅ | Get all submissions for a task |
-| `PATCH` | `/api/submissions/:id/approve` | ✅ | Approve a phase submission |
-
----
-
-## 🔒 Authentication Flow
-
-SkillBridge uses **Two-Step OTP Authentication** for security on every login:
-
-```
-┌─────────────────────────────────────────────────────┐
-│  STEP 1 — Credentials                               │
-│                                                     │
-│  User enters Email + Password                       │
-│            ↓                                        │
-│  Server validates credentials against DB            │
-│            ↓                                        │
-│  6-digit OTP generated (e.g. 483921)                │
-│            ↓                                        │
-│  OTP saved to DB with 10-minute TTL expiry          │
-│            ↓                                        │
-│  OTP emailed to user via Gmail (Nodemailer)         │
-│            ↓                                        │
-│  Response: { step: 'otp', email: '...' }            │
-└─────────────────────────────────────────────────────┘
-                         ↓
-┌─────────────────────────────────────────────────────┐
-│  STEP 2 — OTP Verification                          │
-│                                                     │
-│  User enters 6-digit OTP from email                 │
-│            ↓                                        │
-│  Server finds OTP record by email                   │
-│            ↓                                        │
-│  Compares entered OTP with stored OTP               │
-│            ↓                                        │
-│  OTP deleted from DB (one-time use only)            │
-│            ↓                                        │
-│  JWT token issued (expires in 7 days)               │
-│            ↓                                        │
-│  User is logged in ✅ Redirected to Marketplace    │
-└─────────────────────────────────────────────────────┘
-```
-
-### Security Details
-- Passwords are hashed using **bcrypt** (12 salt rounds)
-- OTP expires automatically via MongoDB **TTL index** (10 minutes)
-- OTP is deleted immediately after use (cannot be reused)
-- JWT tokens expire in **7 days**
-- Every API request validates the JWT via middleware
-
----
-
-## 📧 Email Notifications
-
-The following emails are sent automatically:
-
-| When | Email | Content |
-|---|---|---|
-| User registers | 🎉 **Welcome Email** | Welcome to SkillBridge, account details |
-| User logs in (Step 1) | 🔐 **OTP Email** | 6-digit code, valid for 10 minutes |
-| User successfully logs in | 🔔 **Login Alert** | Security notification with date & time |
-
-> 📌 **Local Development Tip:** OTP is always printed in the server console even if email fails:
-> ```
-> 🔑 [Local Development] Generated OTP for user@email.com: 483921
-> ```
-
-> ⚡ Emails are sent **non-blocking** — if email fails, the app continues to work normally.
-
----
-
-## 👥 User Roles
-
-### 🧑‍💼 Client
-- Register as **Client**
-- Post tasks with title, description, category, budget, deadline
-- Review proposals received from freelancers
-- Accept one freelancer per task
-- Track task progress through phases
-- Approve or reject phase submissions
-- Chat with the assigned freelancer
-
-### 💻 Freelancer
-- Register as **Freelancer**
-- Browse all open tasks in the marketplace
-- Apply to tasks with a proposal message and bid amount
-- Update phase status when work is in progress
-- Submit phase deliverables for client review
-- Chat with the client
-- Earn rating after task completion
-- Appear on public leaderboard
-
----
-
-## 🔧 Troubleshooting
-
-### ❌ Cannot connect to MongoDB
-
-**Error:** `MongoDB connection error: ...`
-
-**Solutions:**
-1. Double-check your `MONGODB_URI` in `.env`
-2. Verify your **DB user password** is correct (no special chars without encoding)
-3. In Atlas → Network Access → make sure `0.0.0.0/0` is added
-4. Make sure your cluster is not paused (free clusters pause after inactivity)
-5. Try connecting with MongoDB Compass to verify credentials
-
----
-
-### ❌ OTP Email Not Received
-
-**Solutions:**
-1. Check `EMAIL_USER` and `EMAIL_PASS` are correctly set in `.env`
-2. Make sure `EMAIL_PASS` is a **Gmail App Password** (16 chars), NOT your Gmail login password
-3. Ensure 2-Step Verification is enabled on the Gmail account
-4. Check the **Spam/Junk** folder in your email
-5. Check the **server terminal** — OTP is always printed there:
-   ```
-   🔑 [Local Development] Generated OTP for you@email.com: 482910
-   ```
-
----
-
-### ❌ Home Page Redirecting to Login
-
-**Solutions:**
-1. Press `Ctrl + Shift + R` in your browser (hard refresh — clears cache)
-2. Make sure the server was **restarted** after any changes to `server.js`
-
----
-
-### ❌ Port 5000 Already in Use
-
-**Error:** `EADDRINUSE :::5000`
-
-**Solution (Windows PowerShell):**
-```powershell
-netstat -ano | findstr :5000
-taskkill /PID <pid_number> /F
-```
-
-Then restart the server.
-
----
-
-### ❌ `npm install` Fails
-
-**Solutions:**
-```bash
-npm cache clean --force
-rm -rf node_modules
 npm install
 ```
 
----
+### 3. Start the Server
+```bash
+# Production mode
+npm start
 
-### ❌ Page Shows Blank / White Screen
+# Development mode (auto-restart)
+npm run dev
+```
 
-**Solutions:**
-1. Open browser **DevTools** → `F12` → check **Console** for errors
-2. Hard refresh: `Ctrl + Shift + R`
-3. Make sure you're visiting `http://localhost:5000` (not a sub-path)
+The application will be accessible at: **`http://localhost:5000`**
 
----
-
-## 📦 npm Scripts Reference
-
-Run all commands from inside the `server/` directory:
-
-| Command | What It Does |
-|---|---|
-| `npm start` | Start server with `node server.js` (production) |
-| `npm run dev` | Start server with `nodemon` — auto-restarts on file change |
-| `npm run seed` | Manually run the database seeder |
+*(If the database is empty, seed data runs automatically on initial startup!)*
 
 ---
 
-## 🌐 Browser Compatibility
+## 🔄 n8n AI Workflow Setup Guide
 
-| Browser | Supported |
-|---|---|
-| Chrome 90+ | ✅ Yes |
-| Firefox 88+ | ✅ Yes |
-| Microsoft Edge 90+ | ✅ Yes |
-| Safari 14+ | ✅ Yes |
+To run your own visual automation pipeline locally:
+
+1. **Install and run n8n**:
+   ```bash
+   npm install -g n8n
+   n8n start
+   ```
+2. Open **`http://localhost:5678`** and create a workflow:
+   - **Node 1 (Webhook)**: Method `POST`, Path `skillbridge-chatbot`, Response Mode `Using 'Respond to Webhook' Node`.
+   - **Node 2 (Code)**: Transform incoming message into Gemini payload format.
+   - **Node 3 (HTTP Request)**: POST to `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=YOUR_KEY`.
+   - **Node 4 (Code)**: Extract generated text from `candidates[0].content.parts[0].text`.
+   - **Node 5 (Respond to Webhook)**: Respond with JSON `{ "reply": "={{ $json.reply }}" }`.
+3. Set your workflow to **Active (Green)**.
+4. Set `N8N_WEBHOOK_URL=http://localhost:5678/webhook/skillbridge-chatbot` in `server/.env`.
 
 ---
 
-## 📝 Important Notes
+## ☁️ Cloud Deployment (Render & GitHub)
 
-- The frontend is served from the **same Express server** as the API — no separate frontend server needed
-- Always open the app from `http://localhost:5000` (the root URL)
-- The `uploads/` directory is **created automatically** on first server startup
-- If the database is empty on startup, **seed data is inserted automatically**
-- The app uses **AngularJS hash-based routing** (`#!/`) — bookmark URLs look like `http://localhost:5000/#!/marketplace`
+The live project is deployed on **Render**:
+👉 **[https://skillbridge-freelancer-app.onrender.com/](https://skillbridge-freelancer-app.onrender.com/)**
+
+### Deploying Your Own Fork:
+1. Push code to your GitHub repository:
+   ```bash
+   git add .
+   git commit -m "Deploy SkillBridge"
+   git push origin main
+   ```
+2. In [Render Dashboard](https://dashboard.render.com), create a **New Web Service** pointing to your repo.
+3. Configure settings:
+   - **Build Command**: `npm install`
+   - **Start Command**: `node server.js`
+   - **Root Directory**: `server`
+4. Add your Environment Variables (`MONGODB_URI`, `JWT_SECRET`, `GEMINI_API_KEY`).
+5. **Leave `N8N_WEBHOOK_URL` unset on Render** — the backend automatically activates the 24/7 direct Gemini API with zero cloud latency!
+
+---
+
+## 🛣 API Endpoints Reference
+
+### 🤖 Chatbot & AI
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/chatbot/message` | Required | Authenticated chat query (tracks 3-query limit & 6h refill) |
+| `POST` | `/api/chatbot/guest` | None | Guest landing page AI assistant queries |
+
+### 🔐 Authentication
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | None | Create a new client or freelancer account |
+| `POST` | `/api/auth/send-otp` | None | Generate & dispatch login verification code |
+| `POST` | `/api/auth/verify-otp` | None | Validate OTP (or master code `123456`) & return JWT |
+
+### 📋 Tasks & Marketplace
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/tasks` | Optional | Browse open tasks with filters (category, urgency, search) |
+| `POST` | `/api/tasks` | Client | Post a new project task with phase milestones |
+| `GET` | `/api/tasks/:id` | Required | Retrieve task details, deliverables, and submissions |
+| `POST` | `/api/tasks/:id/apply` | Freelancer | Submit a proposal/bid on an open task |
+| `POST` | `/api/tasks/:id/assign` | Client | Accept proposal and assign freelancer to project |
+
+---
+
+## 🔒 Authentication & Email Notifications
+
+1. **Passwordless Email OTP**: Users log in by entering their registered email. A 6-digit OTP is securely dispatched.
+2. **Multi-Channel Fallback**: If SMTP outbound ports (465/587) are restricted by hosting firewalls, delivery fails over instantly to the HTTPS REST API (Port 443).
+3. **Demo Master Key**: For instant testing or demonstration without checking real inboxes, use **`123456`**.
+
+---
+
+## ❓ Frequently Asked Questions & Troubleshooting
+
+#### 1. Why does Render use direct Gemini instead of local n8n?
+Render runs in a cloud data center and cannot reach your private laptop's `localhost:5678`. Our **Enterprise Circuit Breaker** detects this and runs the direct Google GenAI SDK, providing 24/7 uptime without requiring your laptop to remain running.
+
+#### 2. How do I test the 6-hour quota refill immediately?
+Simply send **`reset limit`** in the SkillBot chat window. The server will clear your session counter back to `0/3`.
+
+#### 3. How do I restart the server if Port 5000 is occupied?
+```powershell
+# Windows PowerShell
+netstat -ano | findstr :5000
+taskkill /PID <PID_NUMBER> /F
+```
 
 ---
 
 <div align="center">
 
-Built with ❤️ using **Node.js · Express · MongoDB · AngularJS**
-
-⚡ **SkillBridge** — Connecting Talent with Opportunity
+Built with ❤️ by **Divy** & Team  
+⚡ **SkillBridge** — Empowering Freelancers & Connecting Global Talent
 
 </div>
